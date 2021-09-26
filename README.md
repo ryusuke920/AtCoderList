@@ -29,7 +29,7 @@ AtCoderの問題を個々で管理できるツールです。
 ## 開発体制
 開発者: [ryusuke920](https://twitter.com/ryusuke__h)  
 
-CTF: [mt_saka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)  
+CTF: [MtSaka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)  
 
 ## その他
 何か疑問点・不具合等がありましたら、 [ryusuke920](https://twitter.com/ryusuke__h) のDMにてお願いいたします。
