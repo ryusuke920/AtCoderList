@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>AtCoder-List</title>
+        <link rel='stylesheet' href='/css/style.css'>
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="shortcut icon" href="images/icon.ico" type="image/vnd.microsoft.icon">
+        <!--<script src="/send_url.js"></script>-->
+    </head>
+    <body>
+        <%- include('header'); %>
+        <div class='container'>
+            <div class='container-header'>
+                <% if (locals.username !== "ゲスト") { %>
+                    <h1>問題リスト</h1>
+                    <a href='/new' class='new-button'>+ 問題を追加</a>
+                <% } %>
+            </div>
+            <div class='index-table-wrapper'>
+                <% if (locals.username === "ゲスト") { %>
+                    <p class='not-login'>新規登録 / ログインを行って問題を追加してみましょう！</p>
+                <% } else { %>
+                    <table class="table-body" border="8" bordercolor='#aaf5ef'>
+                        <tr>
+                            <div class='table-head'>
+                                <th><span class='name-column'>問題</span></th>
+                                <th><span class='genre-column'>カテゴリ</span></th>
+                                <th>状態</th>
+                                <th>削除</th>
+                                <th>編集</th>
+                            </div>
+                        </tr>
+                        <% atcoder_list.forEach((item) => { %>
+                            <% if (item.username === locals.username) { %>
+                            <tr>
+                                <div class='table-data'>
+                                    <div class="item-data">
+                                        <td class='name-data'>
+                                            <a href='<%= item.problem_url %>' class="name-list" target="_blank" style="background-color:<%= item.problem_difficulty %>;"><%= item.problem_name %></a>
+                                        </td>
+                                        <td>
+                                            <span class='genre-list'><%= item.problem_genre %></span>
+                                        </td>
+                                    </div>
+                                    <div class="item-menu">
+                                        <td class='status-area'>
+                                            <span class='status-list' style="background-color:<%= item.problem_status_color %>;"><%= item.problem_status %></span>
+                                        </td>
+                                        <td class='delete-area'>
+                                            <form action="/delete/<%= item.id %>" method="post">
+                                                <input class='delete-button' type="submit" value="削除">
+                                            </form>
+                                        </td>
+                                        <td class='edit-area'>
+                                            <a class='edit-button' href="/edit/<%= item.id %>">編集</a>
+                                        </td>
+                                    </div>
+                                </div>
+                            </tr>
+                            <% } %>
+                        <% }) %>
+                    </table>
+                <% } %>
+            </div>
+        </div>
+    </body>
+</html>

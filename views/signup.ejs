@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AtCoder List</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="shortcut icon" href="images/icon.ico" type="image/vnd.microsoft.icon">
+  </head>
+  <body>
+    <header>
+        <a href='/' class='header-logo'>AtCoder List</a>
+    </header>
+    <div class="sign">
+      <div class="container">
+        <div class="panel">
+          <h2>新規登録</h2>
+          <% if (errors.length > 0) { %>
+            <ul class="errors">
+              <% errors.forEach(error => { %>
+                <li><%= error %></li>
+              <% }); %>
+            </ul>
+          <% } %>
+          <form action="/signup" method="post">
+            <p>ユーザー名</p>
+            <input type="text" name="username">
+            <p>メールアドレス</p>
+            <input type="text" name="email">
+            <p>パスワード</p>
+            <input type="password" name="password">
+            <input class='login-button' type="submit" value="登録する">
+            <a class='return-index' href="/index">戻る</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

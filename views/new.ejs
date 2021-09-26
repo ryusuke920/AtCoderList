@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AtCoder List</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="shortcut icon" href="images/icon.ico" type="image/vnd.microsoft.icon">
+    
+  </head>
+  <body>
+    <%- include('header'); %>
+    <div class="container">
+      <div class="container-header">
+        <h1>問題リスト作成</h1>
+        <a href="/index" class="cancel-button"></span>戻る</a>
+      </div>
+      <div class="item-form-wrapper">
+        <form action="/create" method="post">
+          <p class='form-label'><span style ="background:linear-gradient(transparent 50%, #ffca38 50%);">1. 問題</span></p>
+          <input type="text" name="NewProblem" placeholder="例）C - Super Ryuma">
+          <div class='form-difficulty'>
+            <p class='form-label'><span style ="background:linear-gradient(transparent 50%, #caff4d 50%);">2. Difficulty</span></p>
+            <input type='radio' name='NewProblemDifficulty' value='未設定' id='select_difficulty0' checked><label for='select_difficulty0'>未設定</label>
+            <input type='radio' name='NewProblemDifficulty' value='灰' id='select_difficulty1'><label for='select_difficulty1'>灰</label>
+            <input type='radio' name='NewProblemDifficulty' value='茶' id='select_difficulty2'><label for='select_difficulty2'>茶</label>
+            <input type='radio' name='NewProblemDifficulty' value='緑' id='select_difficulty3'><label for='select_difficulty3'>緑</label>
+            <input type='radio' name='NewProblemDifficulty' value='水' id='select_difficulty4'><label for='select_difficulty4'>水</label>
+            <input type='radio' name='NewProblemDifficulty' value='青' id='select_difficulty5'><label for='select_difficulty5'>青</label>
+            <input type='radio' name='NewProblemDifficulty' value='黄' id='select_difficulty6'><label for='select_difficulty6'>黄</label>
+            <input type='radio' name='NewProblemDifficulty' value='橙' id='select_difficulty7'><label for='select_difficulty7'>橙</label>
+            <input type='radio' name='NewProblemDifficulty' value='赤' id='select_difficulty8'><label for='select_difficulty8'>赤</label>
+          </div>
+          <p class='form-label'><span style ="background:linear-gradient(transparent 50%, #69ffc6 50%);">3. 問題のURL</span></p>
+          <input type="text" name="NewProblemUrl" placeholder="例）https://atcoder.jp/contests/abc184/tasks/abc184_c">
+          <div class='form-status'>
+            <p class='form-label'><span style ="background:linear-gradient(transparent 50%, #a8eaff 50%);">4. 状態</span></p>
+            <input type='radio' name='NewProblemStatus' value='未提出' id='select_status0' checked><label for='select_status0'>未提出</label>
+            <input type='radio' name='NewProblemStatus' value='AC' id='select_status1'><label for='select_status1'>AC</label>
+            <input type='radio' name='NewProblemStatus' value='WA' id='select_status2'><label for='select_status2'>WA</label>
+            <input type='radio' name='NewProblemStatus' value='TLE' id='select_status3'><label for='select_status3'>TLE</label>
+            <input type='radio' name='NewProblemStatus' value='MLE' id='select_status4'><label for='select_status4'>MLE</label>
+            <input type='radio' name='NewProblemStatus' value='RE' id='select_status5'><label for='select_status5'>RE</label>
+            <input type='radio' name='NewProblemStatus' value='CE' id='select_status6'><label for='select_status6'>CE</label>
+        </div>
+          <div class='form-category'>
+            <p class='form-label'><span style ="background:linear-gradient(transparent 50%, #f28eff 50%);">5. アルゴリズム</span></p>
+            <p class='form-label-radio'>探索</p>
+            <input type='radio' name='ProblemGenre' value='全探索' id="select_radio1-1"><label for="select_radio1-1">全探索</label>
+            <input type='radio' name='ProblemGenre' value='二分探索' id="select_radio1-2"><label for="select_radio1-2">二分探索</label>
+            <input type='radio' name='ProblemGenre' value='深さ優先探索' id="select_radio1-3"><label for="select_radio1-3">深さ優先探索</label>
+            <input type='radio' name='ProblemGenre' value='幅優先探索' id="select_radio1-4"><label for="select_radio1-4">幅優先探索</label>
+            <input type='radio' name='ProblemGenre' value='bit全探索' id="select_radio1-5"><label for="select_radio1-5">bit全探索</label>
+            <input type='radio' name='ProblemGenre' value='順列全探索' id="select_radio1-6"><label for="select_radio1-6">順列全探索</label>
+            <br><hr>
+            <P class='form-label-radio'>貪欲</P>
+            <input type='radio' name='ProblemGenre' value='貪欲法' id="select_radio2-1"><label for="select_radio2-1">貪欲法</label>
+            <br><hr>
+            <p class='form-label-radio'>文字列処理</p>
+            <input type='radio' name='ProblemGenre' value='文字列処理' id="select_radio3-1"><label for="select_radio3-1">文字列処理</label>
+            <input type='radio' name='ProblemGenre' value='ローリングハッシュ' id="select_radio3-2"><label for="select_radio3-2">ローリングハッシュ</label>
+            <br><hr>
+            <p class='form-label-radio'>数学</p>
+            <input type='radio' name='ProblemGenre' value='整数' id="select_radio4-1"><label for="select_radio4-1">整数</label>
+            <input type='radio' name='ProblemGenre' value='組み合わせ' id="select_radio4-2"><label for="select_radio4-2">組み合わせ</label>
+            <input type='radio' name='ProblemGenre' value='確率' id="select_radio4-3"><label for="select_radio4-3">確率</label>
+            <input type='radio' name='ProblemGenre' value='期待値' id="select_radio4-4"><label for="select_radio4-4">期待値</label>
+            <br><hr>
+            <p class='form-label-radio'>テクニック</p>
+            <input type='radio' name='ProblemGenre' value='累積和' id="select_radio5-1"><label for="select_radio5-1">累積和</label>
+            <input type='radio' name='ProblemGenre' value='いもす法' id="select_radio5-2"><label for="select_radio5-2">いもす法</label>
+            <input type='radio' name='ProblemGenre' value='尺取り法' id="select_radio5-3"><label for="select_radio5-3">尺取り法</label>
+            <input type='radio' name='ProblemGenre' value='半分全列挙' id="select_radio5-4"><label for="select_radio5-4">半分全列挙</label>
+            <input type='radio' name='ProblemGenre' value='平方分割' id="select_radio5-5"><label for="select_radio5-5">平方分割</label>
+            <input type='radio' name='ProblemGenre' value='分割統治' id="select_radio5-6"><label for="select_radio5-6">分割統治</label>
+            <input type='radio' name='ProblemGenre' value='ダブリング' id="select_radio5-7"><label for="select_radio5-7">ダブリング</label>
+            <br><hr>
+            <p class='form-label-radio'>グラフ理論</p>
+            <input type='radio' name='ProblemGenre' value='ダイクストラ法' id="select_radio6-1"><label for="select_radio6-1">ダイクストラ法</label>
+            <input type='radio' name='ProblemGenre' value='ワーシャル・フロイド法' id="select_radio6-2"><label for="select_radio6-2">ワーシャル・フロイド法</label>
+            <input type='radio' name='ProblemGenre' value='最小全域木' id="select_radio6-3"><label for="select_radio6-3">最小全域木</label>
+            <input type='radio' name='ProblemGenre' value='オイラー閉路' id="select_radio6-4"><label for="select_radio6-4">オイラー閉路</label>
+            <br><hr>
+            <p class='form-label-radio'>動的計画法</p>
+            <input type='radio' name='ProblemGenre' value='DP' id="select_radio7-1"><label for="select_radio7-1">DP</label>
+            <input type='radio' name='ProblemGenre' value='木DP' id="select_radio7-2"><label for="select_radio7-2">木DP</label>
+            <input type='radio' name='ProblemGenre' value='区間DP' id="select_radio7-3"><label for="select_radio7-3">区間DP</label>
+            <input type='radio' name='ProblemGenre' value='bitDP' id="select_radio7-4"><label for="select_radio7-4">bitDP</label>
+            <input type='radio' name='ProblemGenre' value='桁DP' id="select_radio7-5"><label for="select_radio7-5">桁DP</label>
+            <input type='radio' name='ProblemGenre' value='インラインDP' id="select_radio7-6"><label for="select_radio7-6">インラインDP</label>
+            <br><hr>
+            <p class='form-label-radio'>データ構造</p>
+            <input type='radio' name='ProblemGenre' value='set' id="select_radio8-1"><label for="select_radio8-1">set</label>
+            <input type='radio' name='ProblemGenre' value='priority_queue' id="select_radio8-2"><label for="select_radio8-2">priority_queue</label>
+            <input type='radio' name='ProblemGenre' value='Union-Find-Tree' id="select_radio8-3"><label for="select_radio8-3">Union-Find-Tree</label>
+            <input type='radio' name='ProblemGenre' value='Segment-Tree' id="select_radio8-4"><label for="select_radio8-4">Segment-Tree</label>
+            <input type='radio' name='ProblemGenre' value='Binary-Indexed-Tree' id="select_radio8-5"><label for="select_radio8-5">Binary-Indexed-Tree</label>
+            <br><hr>
+            <p class='form-label-radio'>ゲーム理論</p>
+            <input type='radio' name='ProblemGenre' value='Nim' id="select_radio9-1"><label for="select_radio9-1">Nim</label>
+            <input type='radio' name='ProblemGenre' value='Grundy数' id="select_radio9-2"><label for="select_radio9-2">Grundy数</label>
+            <input type='radio' name='ProblemGenre' value='Minimax法' id="select_radio9-3"><label for="select_radio9-3">Minimax法</label>
+            <input type='radio' name='ProblemGenre' value='Alpha-Beta法' id="select_radio9-4"><label for="select_radio9-4">Alpha-Beta法</label>
+            <br><hr>
+            <p class='form-label-radio'>ネットワークフロー</p>
+            <input type='radio' name='ProblemGenre' value='最大流問題' id="select_radio10-1"><label for="select_radio10-1">最大流問題</label>
+            <input type='radio' name='ProblemGenre' value='最小費用流' id="select_radio10-2"><label for="select_radio10-2">最小費用流</label>
+            <input type='radio' name='ProblemGenre' value='二部マッチング' id="select_radio10-3"><label for="select_radio10-3">二部マッチング</label>
+            <input type='radio' name='ProblemGenre' value='最大安定集合' id="select_radio10-4"><label for="select_radio10-4">最大安定集合</label>
+            <br><hr>
+            <p class='form-label-radio'>幾何学</p>
+            <input type='radio' name='ProblemGenre' value='凸包' id="select_radio11-1"><label for="select_radio11-1">凸包</label>
+            <input type='radio' name='ProblemGenre' value='線分交差判定' id="select_radio11-2"><label for="select_radio11-2">線分交差判定</label>
+            <input type='radio' name='ProblemGenre' value='反転幾何' id="select_radio11-3"><label for="select_radio11-3">反転幾何</label>
+            <input type='radio' name='ProblemGenre' value='平面走査法' id="select_radio11-4"><label for="select_radio11-4">平面走査法</label>
+            <br><hr>
+            <p class='form-label-radio'>その他</p>
+            <input type='radio' name='ProblemGenre' value='インタラクティブ' id="select_radio12-1"><label for="select_radio12-1">インタラクティブ</label>
+            <input type='radio' name='ProblemGenre' value='マラソン' id="select_radio12-2"><label for="select_radio12-2">マラソン</label>
+            <input type='radio' name='ProblemGenre' value='その他' id="select_radio12-3"><label for="select_radio12-3">その他</label>
+            <input type='radio' name='ProblemGenre' value='未設定' id="select_radio12-4" checked><label for="select_radio12-4">未設定</label>
+            <br>
+          </div>
+          <input type="submit" value="作成する">
+        </form>
+      </div>
+      <a href="/index" class="cancel-button"></span>戻る</a>
+    </div>
+  </body>
+</html>
