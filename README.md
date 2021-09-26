@@ -29,6 +29,8 @@ AtCoderの問題を個々で管理できるツールです。
 ## 開発体制
 開発者: [ryusuke920](https://twitter.com/ryusuke__h)  
 
+アイコン作成: [Harry1206](https://github.com/Harrry1206)  
+
 CTF: [MtSaka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)  
 
 ## その他
