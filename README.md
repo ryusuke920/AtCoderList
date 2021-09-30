@@ -1,5 +1,6 @@
 # AtCoderList
-AtCoderの問題を個々で管理できるツールです。  
+AtCoderの問題を個々で管理できるツールです。   
+[AtCoder-Listへ行く](http://atcoder-list.herokuapp.com/)
 
 <img width="100%" alt="スクリーンショット 2021-09-26 15 39 31" src="https://user-images.githubusercontent.com/66785066/134796689-920cbe1f-525d-4733-9ae1-8379ded814de.png">
 
@@ -33,5 +34,9 @@ AtCoderの問題を個々で管理できるツールです。
 
 CTF: [MtSaka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)  
 
+デバッグ協力者: [mink_](https://twitter.com/mink1618033), [itacha](https://twitter.com/itachakqr), [Nyamau39](https://twitter.com/mijinco2480), [1783](https://twitter.com/1783dayo_), [みゅれ.i.am](https://twitter.com/not_mymyuray)  
+
+色々助けてくれた方: [mag](https://twitter.com/magurofIy)
+
 ## その他
-何か疑問点・不具合等がありましたら、 [ryusuke920](https://twitter.com/ryusuke__h) のDMにてお願いいたします。
+何か疑問点・不具合等がありましたら、 [ryusuke920](https://twitter.com/ryusuke__h) のDM、もしくはissueにてお願いいたします。
