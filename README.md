@@ -35,7 +35,7 @@ AtCoderの問題を個々で管理できるツールです。
 
 CTF: [MtSaka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)  
 
-デバッグ協力者: [mink_](https://twitter.com/mink1618033), [itacha](https://twitter.com/itachakqr), [Nyamau39](https://twitter.com/mijinco2480), [1783](https://twitter.com/1783dayo_), [みゅれ.i.am](https://twitter.com/not_mymyuray)  
+デバッグ協力者: [mink_](https://twitter.com/mink1618033), [itacha](https://twitter.com/itachakqr), [Nyamau39](https://twitter.com/mijinco2480), [みゅれ.i.am](https://twitter.com/not_mymyuray)  
 
 色々助けてくれた方: [mag](https://twitter.com/magurofIy)
 
