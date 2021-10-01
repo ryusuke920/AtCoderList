@@ -8,7 +8,6 @@ app.use(express.static('public'));
 app.use(express.urlencoded({extended: false}));
 app.set('port', (process.env.PORT || 5000));
 
-
 var config = require('./apikey');
 var db_config = {
   host: config.host,
@@ -17,19 +16,16 @@ var db_config = {
   database: config.database
 };
 
-
 /****************************ここから****************************/
 /*https://ninna2.hatenablog.com/entry/2017/02/22/node-mysql%E3%81%A7%E6%8E%A5%E7%B6%9A%E3%81%8C%E5%88%87%E3%82%8C%E3%82%8B%E7%82%B9%E3%82%92%E6%94%B9%E5%96%84*/
 
 var pool = mysql.createPool(db_config);
-/****************************ここまで****************************/
 
-/*なんか怒られるからとりあえず宣言しておく*/
-/***********************************/
+/****************************ここまで****************************/
 
 app.use(
   session({
-    secret: 'my_secret_key',
+    secret: process.env.SESSION_SECRET || 'my_secret_key',
     resave: false,
     saveUninitialized: false,
   })
