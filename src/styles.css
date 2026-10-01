@@ -607,6 +607,13 @@ textarea.input {
   border-color: var(--accent);
 }
 
+.selected-tags {
+  margin-bottom: 8px;
+}
+.tag-filter {
+  margin-bottom: 8px;
+}
+
 .tag-groups {
   display: grid;
   gap: 10px;

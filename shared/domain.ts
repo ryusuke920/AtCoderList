@@ -24,26 +24,110 @@ export const STATUSES = [
 ] as const;
 export type Status = (typeof STATUSES)[number]["value"];
 
+// 既存の問題に付いているタグ名と一致させるため、一度追加したタグの名前は変えないこと
 export const TAG_GROUPS: { name: string; tags: string[] }[] = [
-  { name: "探索", tags: ["全探索", "二分探索", "深さ優先探索", "幅優先探索", "bit全探索", "順列全探索"] },
-  { name: "貪欲", tags: ["貪欲法"] },
-  { name: "文字列", tags: ["文字列処理", "ローリングハッシュ"] },
-  { name: "数学", tags: ["整数", "組み合わせ", "確率", "期待値"] },
+  {
+    name: "探索",
+    tags: ["全探索", "bit全探索", "順列全探索", "二分探索", "答えで二分探索", "三分探索", "深さ優先探索", "幅優先探索", "01-BFS", "メモ化再帰", "枝刈り", "半分全列挙"],
+  },
+  { name: "貪欲", tags: ["貪欲法", "区間スケジューリング", "交換論法", "後ろから考える"] },
+  {
+    name: "文字列",
+    tags: ["文字列処理", "ローリングハッシュ", "Z-algorithm", "KMP", "Manacher", "Suffix Array", "LCP", "Trie", "Aho-Corasick", "回文", "ランレングス圧縮"],
+  },
+  {
+    name: "整数論",
+    tags: ["整数", "素数判定", "素因数分解", "エラトステネスの篩", "約数列挙", "GCD・LCM", "拡張ユークリッド", "mod逆元", "繰り返し二乗法", "中国剰余定理", "オイラーのφ関数", "メビウス関数"],
+  },
+  {
+    name: "数え上げ・確率",
+    tags: ["組み合わせ", "二項係数", "包除原理", "数え上げ", "カタラン数", "確率", "期待値", "期待値の線形性", "主客転倒", "寄与で考える"],
+  },
+  {
+    name: "代数",
+    tags: ["行列累乗", "線形代数", "XOR基底", "FFT・NTT", "畳み込み", "形式的冪級数", "bit演算"],
+  },
   {
     name: "テクニック",
-    tags: ["累積和", "いもす法", "尺取り法", "半分全列挙", "平方分割", "分割統治", "ダブリング"],
+    tags: ["累積和", "二次元累積和", "いもす法", "尺取り法", "座標圧縮", "平方分割", "分割統治", "ダブリング", "Mo's algorithm", "スライド最小値", "差分を考える", "前計算", "鳩の巣原理"],
   },
-  { name: "グラフ", tags: ["ダイクストラ法", "ワーシャル・フロイド法", "最小全域木", "オイラー閉路"] },
-  { name: "動的計画法", tags: ["DP", "木DP", "区間DP", "bitDP", "桁DP", "インラインDP"] },
+  {
+    name: "グラフ",
+    tags: ["ダイクストラ法", "ベルマンフォード法", "ワーシャル・フロイド法", "最小全域木", "トポロジカルソート", "強連結成分分解", "二部グラフ判定", "閉路検出", "Functional Graph", "オイラー閉路", "橋・関節点", "2-SAT", "グリッドグラフ", "頂点倍化"],
+  },
+  {
+    name: "木",
+    tags: ["木の直径", "LCA", "オイラーツアー", "HL分解", "重心分解", "全方位木DP", "マージテク"],
+  },
+  {
+    name: "動的計画法",
+    tags: ["DP", "ナップサックDP", "部分和DP", "LIS", "LCS・編集距離", "区間DP", "bitDP", "桁DP", "木DP", "確率・期待値DP", "挿入DP", "インラインDP", "累積和で高速化", "Convex Hull Trick", "Monge"],
+  },
   {
     name: "データ構造",
-    tags: ["set", "priority_queue", "Union-Find", "Segment Tree", "Binary Indexed Tree"],
+    tags: ["set", "map", "priority_queue", "stack・queue", "deque", "Union-Find", "重み付きUnion-Find", "Segment Tree", "遅延Segment Tree", "Binary Indexed Tree", "Sparse Table", "平衡二分探索木", "Wavelet Matrix", "永続データ構造"],
   },
-  { name: "ゲーム", tags: ["Nim", "Grundy数", "Minimax法", "Alpha-Beta法"] },
-  { name: "フロー", tags: ["最大流", "最小費用流", "二部マッチング", "最大安定集合"] },
-  { name: "幾何", tags: ["凸包", "線分交差判定", "反転幾何", "平面走査法"] },
-  { name: "その他", tags: ["インタラクティブ", "マラソン", "その他"] },
+  { name: "ゲーム", tags: ["Nim", "Grundy数", "Minimax法", "Alpha-Beta法", "後退解析", "ミラー戦略"] },
+  {
+    name: "フロー",
+    tags: ["最大流", "最小カット", "燃やす埋める", "最小費用流", "二部マッチング", "最大安定集合", "最小頂点被覆"],
+  },
+  {
+    name: "幾何",
+    tags: ["外積・内積", "凸包", "線分交差判定", "偏角ソート", "回転", "最近点対", "反転幾何", "平面走査法", "ピックの定理"],
+  },
+  { name: "ヒューリスティック", tags: ["マラソン", "焼きなまし法", "山登り法", "ビームサーチ", "乱択"] },
+  { name: "その他", tags: ["実装", "シミュレーション", "構築", "考察", "場合分け", "誤差・精度", "インタラクティブ", "その他"] },
 ];
+
+/** タグの絞り込みで使う別名（略称など） */
+const TAG_ALIASES: Record<string, string[]> = {
+  深さ優先探索: ["DFS"],
+  幅優先探索: ["BFS"],
+  "Segment Tree": ["セグ木", "セグメント木", "segtree"],
+  "遅延Segment Tree": ["遅延セグ木", "lazy segtree"],
+  "Binary Indexed Tree": ["BIT", "フェニック木", "Fenwick"],
+  "Union-Find": ["UF", "DSU", "素集合"],
+  "重み付きUnion-Find": ["重み付きUF"],
+  priority_queue: ["ヒープ", "優先度付きキュー"],
+  平衡二分探索木: ["BBST"],
+  最小全域木: ["MST", "クラスカル", "プリム"],
+  強連結成分分解: ["SCC"],
+  最小費用流: ["MCF"],
+  最大流: ["フロー"],
+  LCA: ["最小共通祖先"],
+  "Convex Hull Trick": ["CHT"],
+  "FFT・NTT": ["FFT", "NTT"],
+  "Mo's algorithm": ["Mo"],
+  "LCS・編集距離": ["LCS", "編集距離"],
+  LIS: ["最長増加部分列"],
+  焼きなまし法: ["SA", "焼きなまし"],
+  ビームサーチ: ["ビーム"],
+  "GCD・LCM": ["GCD", "LCM", "最大公約数", "最小公倍数"],
+};
+
+/**
+ * タグの絞り込み。グループ名に一致したらそのグループのタグを全部出す。
+ * 戻り値の best は Enter で選ぶ候補（完全一致 > 前方一致 > 部分一致 の順）
+ */
+export function filterTags(query: string): { groups: { name: string; tags: string[] }[]; best: string | null } {
+  const q = query.trim().toLowerCase();
+  if (!q) return { groups: TAG_GROUPS, best: null };
+  const names = (t: string) => [t, ...(TAG_ALIASES[t] ?? [])].map((n) => n.toLowerCase());
+  const score = (t: string) => {
+    const ns = names(t);
+    if (ns.some((n) => n === q)) return 0;
+    if (ns.some((n) => n.startsWith(q))) return 1;
+    if (ns.some((n) => n.includes(q))) return 2;
+    return -1;
+  };
+  const groups = TAG_GROUPS.map((g) => (g.name.toLowerCase().includes(q) ? g : { ...g, tags: g.tags.filter((t) => score(t) >= 0) })).filter(
+    (g) => g.tags.length > 0,
+  );
+  const candidates = groups.flatMap((g) => g.tags).filter((t) => score(t) >= 0);
+  const best = candidates.sort((a, b) => score(a) - score(b))[0] ?? groups[0]?.tags[0] ?? null;
+  return { groups, best };
+}
 
 export type Problem = {
   id: number;

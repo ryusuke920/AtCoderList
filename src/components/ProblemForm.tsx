@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { AtCoderPicker } from "./AtCoderPicker";
 import {
   DIFFICULTIES,
   STATUSES,
-  TAG_GROUPS,
+  filterTags,
   guessTitleFromUrl,
   type Problem,
   type ProblemInput,
@@ -24,6 +24,9 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
   const [titleTouched, setTitleTouched] = useState(Boolean(initial));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [tagQuery, setTagQuery] = useState("");
+
+  const { groups: visibleTagGroups, best: bestTag } = useMemo(() => filterTags(tagQuery), [tagQuery]);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -155,8 +158,32 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
           <legend className="field-label">
             アルゴリズム <span className="field-hint">（複数選択可）</span>
           </legend>
+          {form.tags.length > 0 && (
+            <div className="chips selected-tags">
+              {form.tags.map((t) => (
+                <button type="button" key={t} className="chip chip-tag" aria-pressed="true" onClick={() => toggleTag(t)} title="クリックで外す">
+                  {t} ✕
+                </button>
+              ))}
+            </div>
+          )}
+          <input
+            className="input tag-filter"
+            type="search"
+            placeholder="タグを絞り込む（例: DP、セグ木、BFS、グラフ）。Enter で付け外し"
+            value={tagQuery}
+            onChange={(e) => setTagQuery(e.target.value)}
+            onKeyDown={(e) => {
+              // Enter でいちばん近い候補を付け外しする（フォームは送信しない）
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                if (bestTag) toggleTag(bestTag);
+              }
+            }}
+          />
           <div className="tag-groups">
-            {TAG_GROUPS.map((g) => (
+            {visibleTagGroups.length === 0 && <p className="field-hint">一致するタグがありません</p>}
+            {visibleTagGroups.map((g) => (
               <div key={g.name} className="tag-group">
                 <span className="tag-group-name">{g.name}</span>
                 <div className="chips">
