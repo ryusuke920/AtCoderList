@@ -199,12 +199,6 @@ textarea.input {
 .landing-desc {
   color: var(--muted);
 }
-.landing-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
-}
 .auth-card {
   max-width: 400px;
   margin-top: 28px;
@@ -242,55 +236,27 @@ textarea.input {
   width: 100%;
   margin-top: 20px;
 }
+/* 主役はログインフォームなので、アイコンは控えめに */
 .landing-image {
-  flex: 1 1 360px;
-  min-width: 0;
-  max-width: 50%;
+  flex: none;
+  width: 240px;
+  max-width: 30%;
 }
 @media (max-width: 720px) {
   .landing {
     flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
     padding-top: 16px;
   }
-  .auth-card {
-  max-width: 400px;
-  margin-top: 28px;
-  padding: 4px 20px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-.auth-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-}
-.auth-tabs button {
-  flex: 1;
-  padding: 12px 0;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-}
-.auth-tabs button[aria-selected="true"] {
-  color: var(--accent-strong);
-  border-bottom-color: var(--accent);
-}
-.auth-card .field-hint {
-  display: block;
-  margin-top: 4px;
-}
-.auth-submit {
-  width: 100%;
-  margin-top: 20px;
-}
-.landing-image {
-    max-width: 100%;
+  /* スマホではタイトルの上に小さく出す */
+  .landing-image {
+    order: -1;
+    width: 72px;
+    max-width: none;
+  }
+  .landing-text {
+    flex: none;
   }
 }
 
