@@ -146,7 +146,7 @@ export type ProblemInput = Pick<Problem, "title" | "url" | "difficulty" | "statu
 
 export type User = { id: number; username: string };
 
-export const USERNAME_RULE = { pattern: /^[A-Za-z0-9_\-]{3,20}$/, message: "ユーザー名は半角英数字・_・- の3〜20文字にしてください" };
+export const USERNAME_RULE = { pattern: /^[A-Za-z0-9_\-]{3,20}$/, message: "ユーザー名は 3〜20 文字の半角英数字と「_」「-」で入力してください" };
 export const PASSWORD_RULE = { min: 8, max: 128 };
 
 export function validateCredentials(raw: unknown): { ok: true; username: string; password: string } | { ok: false; error: string } {

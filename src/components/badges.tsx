@@ -9,19 +9,22 @@ export function DifficultyCircle({ difficulty }: { difficulty: Difficulty }) {
 export function StatusBadge({ status, onChange }: { status: Status; onChange?: (s: Status) => void }) {
   const s = STATUSES.find((x) => x.value === status)!;
   if (!onChange) return <span className="status" style={{ background: s.color }}>{s.label}</span>;
+  // iOS Safari は <select> の文字を中央寄せできないので、表示は span で行い、透明な select を重ねて操作だけ受け持たせる
   return (
-    <select
-      className="status status-select"
-      style={{ background: s.color }}
-      value={status}
-      aria-label="状態を変更"
-      onChange={(e) => onChange(e.target.value as Status)}
-    >
-      {STATUSES.map((x) => (
-        <option key={x.value} value={x.value}>
-          {x.label}
-        </option>
-      ))}
-    </select>
+    <label className="status status-picker" style={{ background: s.color }}>
+      {s.label}
+      <select
+        className="status-overlay"
+        value={status}
+        aria-label="状態を変更"
+        onChange={(e) => onChange(e.target.value as Status)}
+      >
+        {STATUSES.map((x) => (
+          <option key={x.value} value={x.value}>
+            {x.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

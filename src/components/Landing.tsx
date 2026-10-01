@@ -76,7 +76,7 @@ function AuthForm({ onAuthenticated }: { onAuthenticated: (user: User) => void }
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        {isSignup && <span className="field-hint">半角英数字・_・- の3〜20文字</span>}
+        {isSignup && <span className="field-hint">3〜20 文字。半角英数字と「_」「-」が使えます</span>}
       </label>
 
       <label className="field">
