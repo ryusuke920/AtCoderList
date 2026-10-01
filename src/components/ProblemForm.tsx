@@ -30,8 +30,10 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
 
   useEffect(() => {
     dialogRef.current?.showModal();
-    // showModal() は最初のフォーカス可能要素（閉じるボタン）にフォーカスするので入力欄に移す
-    firstFieldRef.current?.focus();
+    // showModal() は最初のフォーカス可能要素（閉じるボタン）にフォーカスするので入力欄に移す。
+    // タッチ端末ではいきなりキーボードが出ないよう、フォーカスしない
+    if (matchMedia("(pointer: fine)").matches) firstFieldRef.current?.focus();
+    else (document.activeElement as HTMLElement | null)?.blur();
   }, []);
 
   const set = <K extends keyof ProblemInput>(key: K, value: ProblemInput[K]) => setForm((f) => ({ ...f, [key]: value }));

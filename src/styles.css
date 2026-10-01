@@ -157,6 +157,8 @@ textarea.input {
   font-weight: 900;
   font-size: 20px;
   text-decoration: none;
+  white-space: nowrap;
+  flex: none;
 }
 .header-user {
   display: flex;
@@ -332,7 +334,8 @@ textarea.input {
   .filters {
     grid-template-columns: 1fr 1fr;
   }
-  .filters input[type="search"] {
+  .filters input[type="search"],
+  .filters select:last-child {
     grid-column: 1 / -1;
   }
 }
@@ -469,7 +472,7 @@ textarea.input {
   background: rgb(10 20 30 / 0.45);
 }
 .dialog form {
-  padding: 20px 24px 24px;
+  padding: 20px 24px 0;
 }
 .dialog-head {
   display: flex;
@@ -480,13 +483,16 @@ textarea.input {
 .dialog-head h2 {
   font-size: 20px;
 }
+/* フォームの下までスクロールしなくても常に押せるよう、ダイアログの下端に固定する */
 .dialog-actions {
   position: sticky;
-  bottom: -24px;
+  bottom: 0;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 16px 0 0;
+  margin-top: 16px;
+  padding: 12px 0 16px;
+  border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
@@ -517,7 +523,7 @@ textarea.input {
 }
 .suggestion {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 0 10px;
   padding: 6px 10px;
   border-radius: 6px;
@@ -527,19 +533,27 @@ textarea.input {
   background: var(--accent-soft);
 }
 .suggestion-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 700;
   font-size: 13px;
 }
 .suggestion-title {
+  grid-column: 1 / -1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
 }
 .suggestion-meta {
-  grid-column: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
   color: var(--muted);
   font-size: 11px;
+  line-height: 20px;
 }
 .picker-tasks {
   margin-top: 10px;
@@ -638,5 +652,38 @@ textarea.input {
   .tag-group {
     grid-template-columns: 1fr;
     gap: 2px;
+  }
+}
+
+/* スマホ ================================ */
+
+@media (max-width: 600px) {
+  .header {
+    padding: 10px 16px;
+  }
+  .logo {
+    font-size: 18px;
+  }
+  .dialog form {
+    padding: 16px 16px 0;
+  }
+  .dialog-actions .btn {
+    flex: 1;
+  }
+  /* iOS Safari は 16px 未満の入力欄にフォーカスすると画面を拡大してしまう */
+  .input {
+    font-size: 16px;
+  }
+}
+
+/* 指で押しやすいよう、タッチ端末では小さいボタンを大きくする */
+@media (pointer: coarse) {
+  .chip,
+  .tag,
+  .btn-sm {
+    min-height: 34px;
+  }
+  .status {
+    min-height: 34px;
   }
 }

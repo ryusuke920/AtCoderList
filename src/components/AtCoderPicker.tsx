@@ -87,7 +87,7 @@ export function AtCoderPicker({ onPick, ref }: Props) {
           aria-controls={listId}
           aria-activedescendant={open && suggestions[active] ? `${listId}-${active}` : undefined}
           aria-autocomplete="list"
-          placeholder={contests ? "コンテスト名や ID で検索（例: abc477、企業）" : "コンテスト一覧を読み込み中…"}
+          placeholder={contests ? "コンテスト名・ID で検索（abc477 など）" : "読み込み中…"}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -98,7 +98,8 @@ export function AtCoderPicker({ onPick, ref }: Props) {
             setTasks(null);
             setMessage(null);
           }}
-          onFocus={() => setOpen(true)}
+          // 空のままフォーカスしただけでは開かない（スマホでフォームが隠れるため）
+          onFocus={() => setOpen(query.trim() !== "")}
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
         />
@@ -119,12 +120,12 @@ export function AtCoderPicker({ onPick, ref }: Props) {
                 onMouseEnter={() => setActive(i)}
               >
                 <span className="suggestion-id">{c.contestId.toUpperCase()}</span>
-                <span className="suggestion-title">{c.title}</span>
                 <span className="suggestion-meta">
                   {c.kind === "heuristic" && "ヒューリスティック · "}
                   {formatDate(c.startAt)}
                   {!c.tasksReady && " · 問題取り込み待ち"}
                 </span>
+                <span className="suggestion-title">{c.title}</span>
               </li>
             ))}
           </ul>
