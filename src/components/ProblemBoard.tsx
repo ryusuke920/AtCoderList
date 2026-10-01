@@ -130,6 +130,7 @@ export function ProblemBoard() {
                 <a className="problem-title" href={p.url} target="_blank" rel="noreferrer">
                   {p.title}
                 </a>
+                {p.score !== null && <span className="score">{p.score}点</span>}
               </div>
               {p.tags.length > 0 && (
                 <div className="tags">

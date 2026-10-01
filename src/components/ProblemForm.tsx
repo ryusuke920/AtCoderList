@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { AtCoderPicker } from "./AtCoderPicker";
 import {
   DIFFICULTIES,
   STATUSES,
@@ -8,7 +9,7 @@ import {
   type ProblemInput,
 } from "../../shared/domain";
 
-const EMPTY: ProblemInput = { title: "", url: "", difficulty: "unset", status: "todo", memo: "", tags: [] };
+const EMPTY: ProblemInput = { title: "", url: "", difficulty: "unset", status: "todo", memo: "", score: null, tags: [] };
 
 type Props = {
   initial?: Problem;
@@ -18,7 +19,9 @@ type Props = {
 
 export function ProblemForm({ initial, onSubmit, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const urlRef = useRef<HTMLInputElement>(null);
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+  // AtCoder から選んだ問題。配点の取得が終わる前に別の問題を選んだら古い結果を捨てるために使う
+  const pickedTaskRef = useRef<string | null>(null);
   const [form, setForm] = useState<ProblemInput>(initial ?? EMPTY);
   const [titleTouched, setTitleTouched] = useState(Boolean(initial));
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +29,8 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
 
   useEffect(() => {
     dialogRef.current?.showModal();
-    // showModal() は最初のフォーカス可能要素（閉じるボタン）にフォーカスするので URL 欄に移す
-    urlRef.current?.focus();
+    // showModal() は最初のフォーカス可能要素（閉じるボタン）にフォーカスするので入力欄に移す
+    firstFieldRef.current?.focus();
   }, []);
 
   const set = <K extends keyof ProblemInput>(key: K, value: ProblemInput[K]) => setForm((f) => ({ ...f, [key]: value }));
@@ -62,13 +65,27 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
           </button>
         </div>
 
+        {!initial && (
+          <AtCoderPicker
+            ref={firstFieldRef}
+            onPick={({ url, title, taskId }) => {
+              pickedTaskRef.current = taskId;
+              setTitleTouched(true);
+              setForm((f) => ({ ...f, url, title, score: null }));
+            }}
+            onScore={(taskId, score) => {
+              if (pickedTaskRef.current === taskId) set("score", score);
+            }}
+          />
+        )}
+
         <label className="field">
           <span className="field-label">問題の URL</span>
           <input
             className="input"
             type="url"
             required
-            ref={urlRef}
+            ref={initial ? firstFieldRef : undefined}
             placeholder="https://atcoder.jp/contests/abc184/tasks/abc184_c"
             value={form.url}
             onChange={(e) => onUrlChange(e.target.value)}
@@ -86,6 +103,21 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
               setTitleTouched(true);
               set("title", e.target.value);
             }}
+          />
+        </label>
+
+        <label className="field">
+          <span className="field-label">
+            配点 <span className="field-hint">（任意）</span>
+          </span>
+          <input
+            className="input input-score"
+            type="number"
+            min={0}
+            step={1}
+            placeholder="例）300"
+            value={form.score ?? ""}
+            onChange={(e) => set("score", e.target.value === "" ? null : Number(e.target.value))}
           />
         </label>
 

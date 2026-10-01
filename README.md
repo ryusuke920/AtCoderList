@@ -42,14 +42,27 @@ users ─┬─< sessions
 - `problems`: difficulty / status は**色ではなく列挙値**で保存（旧版は `rgb(...)` 文字列を保存していた）。`UNIQUE(user_id, url)` で同じ問題の二重登録を防止。
 - `problem_tags`: 旧版の「1 問 1 ジャンル」を多対多に。
 
-詳細は `migrations/0002_password_auth.sql`（0001 は GitHub OAuth 版の初期スキーマ）。
+- `problems.score`: 配点。AtCoder から自動取得するか手入力（古いコンテストなど配点がない問題は NULL）。
+- `atcoder_contests` / `atcoder_tasks`: AtCoder から取得した問題一覧・配点のキャッシュ。
+
+詳細は `migrations/`（0001 は GitHub OAuth 版の初期スキーマ、0002 でパスワード認証に、0003 で AtCoder 連携を追加）。
+
+## AtCoder からの自動入力
+
+追加フォームでコンテスト（例: `ABC400`）を入れて問題を選ぶと、URL・問題名・配点が入る。
+
+- AtCoder に公式 API はないため、公開ページ（`/contests/<id>/tasks` と各問題ページ）の HTML を Worker で読んでいる。robots.txt で禁止されていないページのみ
+- 短時間に何度もアクセスすると 429 が返るので、取得結果は D1 にキャッシュし、同じページは二度取りにいかない。配点は選んだ問題の分だけ取得する
+- 問題文は AtCoder の著作物なので取得・保存しない
+- Difficulty は AtCoder Problems 独自の推定値で AtCoder 公式には存在しないため、自動入力しない（手で選ぶ）
+- AtCoder のページ構造が変わって読めなくなっても、手入力はこれまでどおりできる
 
 ### 旧版からの主な改善点
 
 - 他人の問題を編集・削除できてしまう問題（`WHERE id = ?` のみだった）を修正し、全クエリを `user_id` で絞る
 - 全ユーザーの問題を取得してテンプレート側で絞っていたのを、SQL で絞るように
 - CSRF 対策（Origin チェック + SameSite=Lax Cookie）
-- 問題 URL を貼ると問題名を自動入力、タグ複数選択、メモ欄、検索・絞り込み、一覧からワンクリックで状態変更、Difficulty 分布バー、ダークモード、スマホ対応
+- コンテストと問題を選ぶと URL・問題名・配点を自動入力、タグ複数選択、メモ欄、検索・絞り込み、一覧からワンクリックで状態変更、Difficulty 分布バー、ダークモード、スマホ対応
 
 ## ローカル開発
 

@@ -400,6 +400,13 @@ textarea.input {
   }
 }
 
+.score {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .diff-circle {
   flex: none;
   width: 14px;
@@ -481,6 +488,28 @@ textarea.input {
   gap: 8px;
   padding: 16px 0 0;
   background: var(--surface);
+}
+
+.picker {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--accent-soft);
+  border-radius: 8px;
+}
+.picker-row {
+  display: flex;
+  gap: 8px;
+}
+.picker-tasks {
+  margin-top: 10px;
+}
+.picker-message {
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 13px;
+}
+.input-score {
+  max-width: 160px;
 }
 
 .field {

@@ -2,13 +2,14 @@ import { Hono } from "hono";
 import { csrf } from "hono/csrf";
 import { HTTPException } from "hono/http-exception";
 import { validateProblemInput, type Problem } from "../shared/domain";
+import { atcoderRoutes } from "./atcoder";
 import { authRoutes, loadUser, purgeExpiredSessions, requireUser } from "./auth";
 import type { AppEnv, Bindings } from "./types";
 
 type ProblemRow = Omit<Problem, "tags"> & { tags: string };
 
 const SELECT_PROBLEMS = `
-  SELECT p.id, p.title, p.url, p.difficulty, p.status, p.memo,
+  SELECT p.id, p.title, p.url, p.difficulty, p.status, p.memo, p.score,
          p.created_at AS createdAt, p.updated_at AS updatedAt,
          COALESCE((SELECT json_group_array(tag) FROM problem_tags t WHERE t.problem_id = p.id), '[]') AS tags
     FROM problems p`;
@@ -49,8 +50,8 @@ const api = new Hono<AppEnv>()
     try {
       const [inserted] = await db.batch<{ id: number }>([
         db
-          .prepare("INSERT INTO problems (user_id, title, url, difficulty, status, memo) VALUES (?, ?, ?, ?, ?, ?) RETURNING id")
-          .bind(userId, p.title, p.url, p.difficulty, p.status, p.memo),
+          .prepare("INSERT INTO problems (user_id, title, url, difficulty, status, memo, score) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id")
+          .bind(userId, p.title, p.url, p.difficulty, p.status, p.memo, p.score),
         ...replaceTagStatements(db, { where: "user_id = ? AND url = ?", params: [userId, p.url] }, p.tags),
       ]);
       const created = await db.prepare(`${SELECT_PROBLEMS} WHERE p.id = ?`).bind(inserted.results[0].id).first<ProblemRow>();
@@ -72,10 +73,10 @@ const api = new Hono<AppEnv>()
       const [updated] = await db.batch([
         db
           .prepare(
-            `UPDATE problems SET title = ?, url = ?, difficulty = ?, status = ?, memo = ?, updated_at = datetime('now')
+            `UPDATE problems SET title = ?, url = ?, difficulty = ?, status = ?, memo = ?, score = ?, updated_at = datetime('now')
               WHERE id = ? AND user_id = ?`,
           )
-          .bind(p.title, p.url, p.difficulty, p.status, p.memo, id, userId),
+          .bind(p.title, p.url, p.difficulty, p.status, p.memo, p.score, id, userId),
         ...replaceTagStatements(db, { where: "id = ? AND user_id = ?", params: [id, userId] }, p.tags),
       ]);
       if (updated.meta.changes === 0) return c.json({ error: "問題が見つかりません" }, 404);
@@ -98,6 +99,7 @@ const app = new Hono<AppEnv>()
   .use(csrf())
   .use(loadUser)
   .route("/auth", authRoutes)
+  .route("/api/atcoder", atcoderRoutes)
   .route("/api", api);
 
 app.onError((err, c) => {
