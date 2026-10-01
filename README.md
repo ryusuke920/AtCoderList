@@ -65,6 +65,7 @@ users ─┬─< sessions
 
 ```sh
 npm run atcoder:sync                # 毎朝の取り込みと同じ
+npm run atcoder:sync -- --all       # 上限なしで最後まで取り込む（5 秒間隔。過去分の一括取り込み用）
 npm run atcoder:sync abc400 arc190  # 指定したコンテストの問題一覧と配点を取り込む（ID は大文字小文字を区別）
 ```
 

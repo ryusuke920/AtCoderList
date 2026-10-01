@@ -1,7 +1,8 @@
 // AtCoder のコンテスト一覧・問題一覧・配点を取得して本番 D1 に書き込む。
 // AtCoder は Cloudflare からのアクセスを拒否するので、手元の Mac で実行する（launchd で毎朝自動実行）。
 //
-//   npm run atcoder:sync                # 毎朝の取り込み（下記の順に、1 回あたり REQUEST_BUDGET アクセスまで）
+//   npm run atcoder:sync                # 毎朝の取り込み（下記の順に、1 回あたり 300 アクセスまで、3 秒間隔）
+//   npm run atcoder:sync -- --all       # 上限なしで最後まで取り込む（過去分の一括取り込み用、5 秒間隔）
 //   npm run atcoder:sync abc400 arc190  # 指定したコンテストの問題一覧と配点を取り込む（取り込み済みなら上書き）
 //                                       # コンテスト ID は大文字小文字を区別する（例: codequeen2026-final-Public）
 //
@@ -11,19 +12,25 @@
 //   3. 問題一覧が未取得のコンテストを新しい順に取り込む
 //   4. 配点が未取得の問題を新しい順に取り込む
 //
-// AtCoder に負荷をかけないよう、ページ取得は REQUEST_INTERVAL_MS 間隔、1 回の実行で REQUEST_BUDGET 回まで。
+// AtCoder に負荷をかけないよう、ページ取得の間隔を空け、1 回の実行のアクセス数に上限を設ける。
+// 429・5xx・通信エラーは待ってから再試行し、それでも駄目なら止める（取り込み済みの分は残るので再実行で続きから）。
+// 同時に 2 つ動かないようロックファイルを使う（一括取り込み中は毎朝の実行をスキップする）。
 // 問題文は AtCoder の著作物なので取得・保存しない。
 
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const ORIGIN = "https://atcoder.jp";
 const USER_AGENT = "AtCoderList-sync (+https://github.com/ryusuke920/AtCoderList)";
-const REQUEST_INTERVAL_MS = 3000;
-const REQUEST_BUDGET = 300;
+const ALL = process.argv.includes("--all");
+const REQUEST_INTERVAL_MS = ALL ? 5000 : 3000;
+const REQUEST_BUDGET = ALL ? Infinity : 300;
+const RETRY_WAITS_MS = [60_000, 120_000, 300_000];
+// launchd とシェルで TMPDIR が違うことがあるので固定の場所に置く
+const LOCK_FILE = join(homedir(), "Library", "Caches", "atcoder-list-sync.lock");
 const DB_NAME = "atcoder-list";
 const ROOT = join(import.meta.dirname, "..");
 const WRANGLER = join(ROOT, "node_modules", ".bin", "wrangler");
@@ -46,7 +53,7 @@ class HttpError extends Error {
 
 let requestCount = 0;
 let lastRequestAt = 0;
-async function fetchPage(path: string): Promise<string> {
+async function fetchOnce(path: string): Promise<string> {
   if (requestCount >= REQUEST_BUDGET) throw new BudgetExhausted();
   const wait = lastRequestAt + REQUEST_INTERVAL_MS - Date.now();
   if (wait > 0) await sleep(wait);
@@ -57,6 +64,21 @@ async function fetchPage(path: string): Promise<string> {
   });
   if (!res.ok) throw new HttpError(res.status, path);
   return res.text();
+}
+
+const isRetryable = (e: unknown) =>
+  e instanceof HttpError ? e.status === 429 || e.status >= 500 : !(e instanceof BudgetExhausted);
+
+async function fetchPage(path: string): Promise<string> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetchOnce(path);
+    } catch (e) {
+      if (!isRetryable(e) || attempt >= RETRY_WAITS_MS.length) throw e;
+      log(`${e instanceof Error ? e.message : e}。${RETRY_WAITS_MS[attempt] / 1000} 秒待って再試行します`);
+      await sleep(RETRY_WAITS_MS[attempt]);
+    }
+  }
 }
 
 // ---- HTML の読み取り ----
@@ -217,26 +239,50 @@ async function dailySync() {
   }
   flush();
 
-  // 3. 問題一覧が未取得のコンテスト
-  const contests = query<{ contest_id: string }>(
-    `SELECT contest_id FROM atcoder_contests WHERE tasks_status = 0 ORDER BY start_at DESC LIMIT ${REQUEST_BUDGET}`,
-  );
-  for (const { contest_id } of contests) {
-    const tasks = await syncTaskList(contest_id);
-    log(`${contest_id}: 問題 ${tasks.length} 問`);
+  // 3. 問題一覧が未取得のコンテスト（--all のときは尽きるまで 200 件ずつ）
+  for (;;) {
+    const contests = query<{ contest_id: string }>(
+      `SELECT contest_id FROM atcoder_contests WHERE tasks_status = 0 ORDER BY start_at DESC LIMIT 200`,
+    );
+    if (contests.length === 0) break;
+    for (const { contest_id } of contests) {
+      const tasks = await syncTaskList(contest_id);
+      log(`${contest_id}: 問題 ${tasks.length} 問`);
+    }
+    flush();
   }
-  flush();
 
   // 4. 配点が未取得の問題
-  const tasks = query<{ task_id: string; contest_id: string }>(
-    `SELECT t.task_id, t.contest_id FROM atcoder_tasks t JOIN atcoder_contests c ON c.contest_id = t.contest_id
-      WHERE t.score_fetched = 0 ORDER BY c.start_at DESC, t.position LIMIT ${REQUEST_BUDGET}`,
-  );
-  for (const t of tasks) await syncScore(t.contest_id, t.task_id);
+  for (;;) {
+    const tasks = query<{ task_id: string; contest_id: string }>(
+      `SELECT t.task_id, t.contest_id FROM atcoder_tasks t JOIN atcoder_contests c ON c.contest_id = t.contest_id
+        WHERE t.score_fetched = 0 ORDER BY c.start_at DESC, t.position LIMIT 200`,
+    );
+    if (tasks.length === 0) break;
+    for (const t of tasks) await syncScore(t.contest_id, t.task_id);
+    flush();
+    log(`配点: ${tasks.length} 問取り込み（${tasks.at(-1)!.contest_id} まで）`);
+  }
+}
+
+/** 別の実行が動いていれば false。動いていなければロックを取って true */
+function acquireLock(): boolean {
+  try {
+    const pid = Number(readFileSync(LOCK_FILE, "utf8"));
+    process.kill(pid, 0); // 生きていれば例外にならない
+    return false;
+  } catch {
+    writeFileSync(LOCK_FILE, String(process.pid));
+    return true;
+  }
 }
 
 async function main() {
-  const requested = process.argv.slice(2);
+  const requested = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+  if (!acquireLock()) {
+    log("別の取り込みが実行中なので、今回はスキップします");
+    return;
+  }
   try {
     if (requested.length > 0) {
       for (const id of requested) await syncContestFully(id);
@@ -248,6 +294,7 @@ async function main() {
     log(`今回のアクセス上限（${REQUEST_BUDGET} 回）に達したので、続きは次回に回します`);
   } finally {
     flush();
+    rmSync(LOCK_FILE, { force: true });
   }
 
   const [summary] = query<{ contests: number; listed: number; tasks: number; scored: number }>(
