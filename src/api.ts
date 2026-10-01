@@ -12,7 +12,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  me: () => request<{ user: User | null; devLogin: boolean }>("/api/me"),
+  me: () => request<{ user: User | null }>("/api/me").then((r) => r.user),
+  signup: (username: string, password: string) =>
+    request<{ user: User }>("/auth/signup", { method: "POST", body: JSON.stringify({ username, password }) }).then((r) => r.user),
+  login: (username: string, password: string) =>
+    request<{ user: User }>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }).then((r) => r.user),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
   listProblems: () => request<{ problems: Problem[] }>("/api/problems").then((r) => r.problems),
   createProblem: (input: ProblemInput) =>

@@ -1,4 +1,10 @@
-export function Landing({ devLogin }: { devLogin: boolean }) {
+import { useState, type FormEvent } from "react";
+import { PASSWORD_RULE, USERNAME_RULE, type User } from "../../shared/domain";
+import { api } from "../api";
+
+type Mode = "login" | "signup";
+
+export function Landing({ onAuthenticated }: { onAuthenticated: (user: User) => void }) {
   return (
     <section className="landing">
       <div className="landing-text">
@@ -9,26 +15,104 @@ export function Landing({ devLogin }: { devLogin: boolean }) {
           <br />
           Difficulty・状態・アルゴリズムで整理して、あとから一瞬で開けます。
         </p>
-        <div className="landing-actions">
-          <a className="btn btn-primary btn-lg" href="/auth/github/login">
-            <GitHubIcon /> GitHub でログイン
-          </a>
-          {devLogin && (
-            <a className="btn btn-ghost" href="/auth/dev-login">
-              開発用ログイン
-            </a>
-          )}
-        </div>
+        <AuthForm onAuthenticated={onAuthenticated} />
       </div>
       <img className="landing-image" src="/top.png" alt="" />
     </section>
   );
 }
 
-function GitHubIcon() {
+function AuthForm({ onAuthenticated }: { onAuthenticated: (user: User) => void }) {
+  const [mode, setMode] = useState<Mode>("login");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError(null);
+    setConfirm("");
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (mode === "signup" && password !== confirm) {
+      setError("確認用パスワードが一致しません");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      onAuthenticated(mode === "signup" ? await api.signup(username, password) : await api.login(username, password));
+    } catch (err) {
+      setError((err as Error).message);
+      setSubmitting(false);
+    }
+  };
+
+  const isSignup = mode === "signup";
+
   return (
-    <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-    </svg>
+    <form className="auth-card" onSubmit={submit}>
+      <div className="auth-tabs" role="tablist">
+        <button type="button" role="tab" aria-selected={!isSignup} onClick={() => switchMode("login")}>
+          ログイン
+        </button>
+        <button type="button" role="tab" aria-selected={isSignup} onClick={() => switchMode("signup")}>
+          新規登録
+        </button>
+      </div>
+
+      <label className="field">
+        <span className="field-label">ユーザー名</span>
+        <input
+          className="input"
+          required
+          autoComplete="username"
+          pattern={isSignup ? USERNAME_RULE.pattern.source : undefined}
+          title={isSignup ? USERNAME_RULE.message : undefined}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        {isSignup && <span className="field-hint">半角英数字・_・- の3〜20文字</span>}
+      </label>
+
+      <label className="field">
+        <span className="field-label">パスワード</span>
+        <input
+          className="input"
+          type="password"
+          required
+          minLength={isSignup ? PASSWORD_RULE.min : undefined}
+          maxLength={PASSWORD_RULE.max}
+          autoComplete={isSignup ? "new-password" : "current-password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {isSignup && <span className="field-hint">{PASSWORD_RULE.min}文字以上</span>}
+      </label>
+
+      {isSignup && (
+        <label className="field">
+          <span className="field-label">パスワード（確認）</span>
+          <input
+            className="input"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+        </label>
+      )}
+
+      {error && <p className="form-error">{error}</p>}
+
+      <button type="submit" className="btn btn-primary btn-lg auth-submit" disabled={submitting}>
+        {submitting ? "送信中…" : isSignup ? "登録してはじめる" : "ログイン"}
+      </button>
+    </form>
   );
 }

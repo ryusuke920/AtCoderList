@@ -11,7 +11,7 @@ AtCoder の「解きたい問題」「復習したい問題」をストックし
 | DB | Cloudflare D1（SQLite） | 無料枠: 5GB / 500 万行読み取り/日。放置しても停止されない |
 | API | Hono | `worker/` |
 | フロント | React 19 + Vite | `src/`。Worker と同じオリジンから配信 |
-| 認証 | GitHub OAuth + 自前セッション（D1） | パスワードを保存しない |
+| 認証 | ユーザー名 + パスワード（PBKDF2 + ペッパー）、セッションは D1 | `worker/auth.ts`, `worker/password.ts` |
 
 ```
 worker/      Hono API（/api/*, /auth/*）
@@ -23,7 +23,11 @@ migrations/  D1 スキーマ
 ### なぜこの構成か
 
 - **無料かつ放置しても止まらない**ことを最優先。Supabase / Neon は無料枠でも非アクティブ時に停止・休止があり、Render 無料枠はスリープする。Cloudflare は Workers + D1 ともに常時無料で動く。
-- Workers 無料枠は **CPU 時間 10ms/リクエスト**。bcrypt / PBKDF2 によるパスワードハッシュはこれを超えやすいので、パスワード認証をやめて GitHub OAuth にした（競プロ勢はほぼ GitHub アカウントを持っている）。
+- Workers 無料枠は **CPU 時間 10ms/リクエスト**。bcrypt はネイティブ実装が使えず重すぎるので、WebCrypto の PBKDF2-SHA256 を使う。
+  反復回数は 5 万回（M 系 Mac で約 6ms。10 万回だと約 12ms で上限超え）に抑え、その分を以下で補っている:
+  - **ペッパー**: Worker の Secret `PASSWORD_PEPPER` を HMAC 鍵としてパスワードに混ぜてから PBKDF2 にかける。DB だけ漏れても総当たりできない
+  - **ログイン試行制限**: 5 回連続で失敗するとそのユーザーを 15 分ロック
+  - 反復回数はハッシュ文字列に埋め込んでいるので、将来上げても既存ユーザーはそのままログインできる
 - フロントと API を 1 つの Worker にまとめているので CORS 不要・デプロイ 1 コマンド。
 
 ## DB 設計
@@ -33,12 +37,12 @@ users ─┬─< sessions
        └─< problems ─< problem_tags
 ```
 
-- `users`: GitHub ID と 1:1。
+- `users`: ユーザー名は大文字小文字を区別せず一意（`COLLATE NOCASE`）。メールアドレスは旧版でも使っていなかったので持たない。
 - `sessions`: Cookie にはランダムトークン、DB にはその SHA-256 のみ保存（DB が漏れてもセッションを乗っ取れない）。期限 30 日、毎日 Cron で掃除。
 - `problems`: difficulty / status は**色ではなく列挙値**で保存（旧版は `rgb(...)` 文字列を保存していた）。`UNIQUE(user_id, url)` で同じ問題の二重登録を防止。
 - `problem_tags`: 旧版の「1 問 1 ジャンル」を多対多に。
 
-詳細は `migrations/0001_init.sql`。
+詳細は `migrations/0002_password_auth.sql`（0001 は GitHub OAuth 版の初期スキーマ）。
 
 ### 旧版からの主な改善点
 
@@ -51,36 +55,23 @@ users ─┬─< sessions
 
 ```sh
 npm install
-cp .dev.vars.example .dev.vars    # DEV_LOGIN=true で GitHub なしでログインできる
+cp .dev.vars.example .dev.vars    # ローカル用の PASSWORD_PEPPER
 npm run db:migrate:local
-npm run dev                       # http://localhost:5173 → 「開発用ログイン」
+npm run dev                       # http://localhost:5173 → 新規登録
 ```
 
 ## デプロイ手順（初回）
 
-1. Cloudflare アカウントを作成（無料）し、ログイン
+1. Cloudflare にログイン: `npx wrangler login`
+2. D1 を作成し、`database_id` を `wrangler.jsonc` に書く: `npx wrangler d1 create atcoder-list`
+3. ペッパーを Secret に登録（値は誰も知らなくてよい。**一度決めたら変えない**。変えると全員ログインできなくなる）
    ```sh
-   npx wrangler login
+   openssl rand -base64 32 | npx wrangler secret put PASSWORD_PEPPER
    ```
-2. D1 データベースを作成し、出力された `database_id` を `wrangler.jsonc` に書き込む
-   ```sh
-   npx wrangler d1 create atcoder-list
-   ```
-3. 本番 DB にスキーマを適用
+4. スキーマ適用とデプロイ
    ```sh
    npm run db:migrate:remote
-   ```
-4. 一度デプロイして URL（`https://atcoder-list.<subdomain>.workers.dev`）を確定させる
-   ```sh
    npm run deploy
-   ```
-5. GitHub で OAuth App を作成（Settings → Developer settings → OAuth Apps → New）
-   - Homepage URL: 上の URL
-   - Authorization callback URL: `<上の URL>/auth/github/callback`
-6. Client ID / Secret を Worker の Secret に登録
-   ```sh
-   npx wrangler secret put GITHUB_CLIENT_ID
-   npx wrangler secret put GITHUB_CLIENT_SECRET
    ```
 
 以降は `npm run deploy` だけ。スキーマを変えたら `migrations/` に SQL を追加して `npm run db:migrate:remote`。

@@ -32,7 +32,7 @@ function replaceTagStatements(db: D1Database, target: { where: string; params: u
 const isUniqueViolation = (e: unknown) => e instanceof Error && e.message.includes("UNIQUE constraint failed");
 
 const api = new Hono<AppEnv>()
-  .get("/me", (c) => c.json({ user: c.var.user, devLogin: c.env.DEV_LOGIN === "true" }))
+  .get("/me", (c) => c.json({ user: c.var.user }))
   .use("/problems/*", requireUser)
   .get("/problems", async (c) => {
     const { results } = await c.env.DB.prepare(`${SELECT_PROBLEMS} WHERE p.user_id = ? ORDER BY p.updated_at DESC, p.id DESC`)

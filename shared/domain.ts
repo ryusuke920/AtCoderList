@@ -59,7 +59,20 @@ export type Problem = {
 
 export type ProblemInput = Pick<Problem, "title" | "url" | "difficulty" | "status" | "memo" | "tags">;
 
-export type User = { id: number; username: string; avatarUrl: string | null };
+export type User = { id: number; username: string };
+
+export const USERNAME_RULE = { pattern: /^[A-Za-z0-9_\-]{3,20}$/, message: "ユーザー名は半角英数字・_・- の3〜20文字にしてください" };
+export const PASSWORD_RULE = { min: 8, max: 128 };
+
+export function validateCredentials(raw: unknown): { ok: true; username: string; password: string } | { ok: false; error: string } {
+  const r = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const username = typeof r.username === "string" ? r.username.trim() : "";
+  const password = typeof r.password === "string" ? r.password : "";
+  if (!USERNAME_RULE.pattern.test(username)) return { ok: false, error: USERNAME_RULE.message };
+  if (password.length < PASSWORD_RULE.min || password.length > PASSWORD_RULE.max)
+    return { ok: false, error: `パスワードは${PASSWORD_RULE.min}〜${PASSWORD_RULE.max}文字にしてください` };
+  return { ok: true, username, password };
+}
 
 export const LIMITS = { title: 200, url: 500, memo: 2000, tags: 20, tag: 40 } as const;
 

@@ -1,5 +1,3 @@
 # ローカル開発用。`cp .dev.vars.example .dev.vars` して使う
-# true にすると GitHub OAuth なしで /auth/dev-login からログインできる（本番では絶対に設定しない）
-DEV_LOGIN=true
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
+# パスワードハッシュに混ぜる秘密値。本番では `wrangler secret put PASSWORD_PEPPER` で別の値を設定する
+PASSWORD_PEPPER=local-dev-pepper
