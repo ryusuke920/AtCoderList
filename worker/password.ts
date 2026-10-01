@@ -3,7 +3,9 @@
 // その分をサーバー側だけが持つペッパー（PASSWORD_PEPPER）で補う。
 
 const ALGORITHM = "pbkdf2-sha256";
-const ITERATIONS = 50_000;
+// 本番計測で 5 万回は CPU 11〜28ms と上限を超えたため 2 万回に下げた。
+// 反復回数はハッシュ文字列に埋め込むので、変更しても既存ユーザーの検証には影響しない
+const ITERATIONS = 20_000;
 const encoder = new TextEncoder();
 
 const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
