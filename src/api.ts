@@ -1,4 +1,4 @@
-import type { AtCoderTask, Problem, ProblemInput, User } from "../shared/domain";
+import type { AtCoderContest, AtCoderTask, Problem, ProblemInput, User } from "../shared/domain";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -23,6 +23,7 @@ export const api = {
     request<{ problem: Problem }>("/api/problems", { method: "POST", body: JSON.stringify(input) }).then((r) => r.problem),
   updateProblem: (id: number, input: ProblemInput) =>
     request<{ problem: Problem }>(`/api/problems/${id}`, { method: "PUT", body: JSON.stringify(input) }).then((r) => r.problem),
+  atcoderContests: () => request<{ contests: AtCoderContest[] }>("/api/atcoder/contests").then((r) => r.contests),
   atcoderTasks: (contestId: string) =>
     request<{ contestId: string; tasks: AtCoderTask[] }>(`/api/atcoder/contests/${encodeURIComponent(contestId)}/tasks`),
   deleteProblem: (id: number) => request<void>(`/api/problems/${id}`, { method: "DELETE" }),

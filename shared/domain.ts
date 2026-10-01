@@ -112,6 +112,17 @@ export function guessTitleFromUrl(url: string): string | null {
   return `${contest.toUpperCase()} ${suffix.toUpperCase()}`;
 }
 
+/** サジェストに出すコンテスト */
+export type AtCoderContest = {
+  contestId: string;
+  title: string;
+  /** 例: 2026-09-26 21:00:00+0900（アーカイブ未取得の回は null） */
+  startAt: string | null;
+  kind: "algorithm" | "heuristic" | null;
+  /** 問題一覧を取り込み済みか */
+  tasksReady: boolean;
+};
+
 /** AtCoder から取得した問題（一覧の 1 行） */
 export type AtCoderTask = {
   taskId: string;
@@ -122,10 +133,29 @@ export type AtCoderTask = {
   score: number | null;
 };
 
-/** 「ABC400」「abc400」やコンテスト / 問題の URL からコンテスト ID を取り出す */
+/** コンテスト ID として妥当か（大文字を含む ID もある。例: codequeen2026-final-Public） */
 export function parseContestId(input: string): string | null {
-  const text = input.trim();
-  const fromUrl = text.match(/atcoder\.jp\/contests\/([^/?#]+)/);
-  const id = (fromUrl ? fromUrl[1] : text).toLowerCase();
-  return /^[a-z0-9][a-z0-9_-]{1,39}$/.test(id) ? id : null;
+  const id = input.trim();
+  return /^[A-Za-z0-9][A-Za-z0-9_-]{1,59}$/.test(id) ? id : null;
+}
+
+/** サジェストの絞り込み・並べ替え。ID の一致を優先し、同順位なら新しい回を先にする */
+export function searchContests(contests: AtCoderContest[], input: string, limit = 8): AtCoderContest[] {
+  const query = input.trim().toLowerCase();
+  if (!query) return contests.slice(0, limit);
+  const compact = query.replace(/[\s_-]/g, "");
+  const rank = (c: AtCoderContest) => {
+    const id = c.contestId.toLowerCase().replace(/[_-]/g, "");
+    if (id === compact) return 0;
+    if (id.startsWith(compact)) return 1;
+    if (id.includes(compact)) return 2;
+    if (c.title.toLowerCase().includes(query)) return 3;
+    return -1;
+  };
+  return contests
+    .map((c, i) => ({ c, r: rank(c), i }))
+    .filter((x) => x.r >= 0)
+    .sort((a, b) => a.r - b.r || a.i - b.i)
+    .slice(0, limit)
+    .map((x) => x.c);
 }

@@ -496,9 +496,50 @@ textarea.input {
   background: var(--accent-soft);
   border-radius: 8px;
 }
-.picker-row {
-  display: flex;
-  gap: 8px;
+.combobox {
+  position: relative;
+}
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+.suggestion {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.suggestion[aria-selected="true"] {
+  background: var(--accent-soft);
+}
+.suggestion-id {
+  font-weight: 700;
+  font-size: 13px;
+}
+.suggestion-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.suggestion-meta {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 11px;
 }
 .picker-tasks {
   margin-top: 10px;
