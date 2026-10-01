@@ -1,0 +1,5 @@
+# ローカル開発用。`cp .dev.vars.example .dev.vars` して使う
+# true にすると GitHub OAuth なしで /auth/dev-login からログインできる（本番では絶対に設定しない）
+DEV_LOGIN=true
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
