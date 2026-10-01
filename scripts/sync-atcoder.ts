@@ -2,15 +2,18 @@
 // AtCoder は Cloudflare からのアクセスを拒否するので、手元の Mac で実行する（launchd で毎朝自動実行）。
 //
 //   npm run atcoder:sync                # 毎朝の取り込み（下記の順に、1 回あたり 300 アクセスまで、3 秒間隔）
-//   npm run atcoder:sync -- --all       # 上限なしで最後まで取り込む（過去分の一括取り込み用、5 秒間隔）
+//   npm run atcoder:sync -- --all       # 上限なしで最後まで取り込む（過去分の一括取り込み用）
 //   npm run atcoder:sync abc400 arc190  # 指定したコンテストの問題一覧と配点を取り込む（取り込み済みなら上書き）
 //                                       # コンテスト ID は大文字小文字を区別する（例: codequeen2026-final-Public）
 //
 // 毎朝の取り込みの優先順位:
 //   1. アーカイブ 1 ページ目（直近の約 50 回）をコンテスト一覧に追加し、その問題一覧・配点を取り込む
 //   2. アーカイブ 2 ページ目以降をコンテスト一覧に追加する（全ページ読み終えたら以降はスキップ）
-//   3. 問題一覧が未取得のコンテストを新しい順に取り込む
-//   4. 配点が未取得の問題を新しい順に取り込む
+//   3. 問題一覧と配点が未取得のコンテストを新しい順に取り込む
+//   4. 問題一覧はあるが配点が未取得のコンテストの配点を取り込む
+//
+// 1 コンテストあたり 2 アクセス: 問題一覧ページ（問題 ID・記号・問題名）と、
+// 全問題を 1 ページにまとめた印刷用ページ tasks_print（記号ごとの配点）。
 //
 // AtCoder に負荷をかけないよう、ページ取得の間隔を空け、1 回の実行のアクセス数に上限を設ける。
 // 429・5xx・通信エラーは待ってから再試行し、それでも駄目なら止める（取り込み済みの分は残るので再実行で続きから）。
@@ -26,7 +29,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 const ORIGIN = "https://atcoder.jp";
 const USER_AGENT = "AtCoderList-sync (+https://github.com/ryusuke920/AtCoderList)";
 const ALL = process.argv.includes("--all");
-const REQUEST_INTERVAL_MS = ALL ? 5000 : 3000;
+const REQUEST_INTERVAL_MS = 3000;
 const REQUEST_BUDGET = ALL ? Infinity : 300;
 const RETRY_WAITS_MS = [60_000, 120_000, 300_000];
 // launchd とシェルで TMPDIR が違うことがあるので固定の場所に置く
@@ -122,10 +125,21 @@ export function parseTaskList(html: string, contestId: string): Task[] {
     .map(([taskId, t]) => ({ taskId, label: t.label!, title: t.title! }));
 }
 
-/** 問題ページの「配点 : <var>100</var> 点」。書かれていなければ null */
+/** 問題文中の最初の「配点 : <var>100</var> 点」。書かれていなければ null */
 export function parseScore(html: string): number | null {
   const m = html.match(/配点\s*:\s*<var>\s*(\d+)\s*<\/var>/);
   return m ? Number(m[1]) : null;
+}
+
+/** 印刷用ページ（tasks_print）を「A - 問題名」の見出しで区切り、記号ごとの配点を読む */
+export function parsePrintScores(html: string): Map<string, number | null> {
+  const scores = new Map<string, number | null>();
+  const sections = html.split('<span class="h2">').slice(1);
+  for (const section of sections) {
+    const label = section.match(/^\s*([^<]+?)\s+-\s/)?.[1];
+    if (label && !scores.has(label)) scores.set(decodeEntities(label), parseScore(section));
+  }
+  return scores;
 }
 
 // ---- D1 ----
@@ -196,19 +210,26 @@ async function syncTaskList(contestId: string): Promise<Task[]> {
   return tasks;
 }
 
-async function syncScore(contestId: string, taskId: string) {
-  let score: number | null = null;
+/** 印刷用ページから配点を取り込む。見つからなかった問題も配点なし（NULL）として取得済みにする */
+async function syncScores(contestId: string) {
+  let scores = new Map<string, number | null>();
   try {
-    score = parseScore(await fetchPage(`/contests/${contestId}/tasks/${taskId}`));
+    scores = parsePrintScores(await fetchPage(`/contests/${contestId}/tasks_print`));
   } catch (e) {
     if (!(e instanceof HttpError && e.status === 404)) throw e;
   }
-  write(`UPDATE atcoder_tasks SET score = ${score ?? "NULL"}, score_fetched = 1 WHERE task_id = ${q(taskId)};`);
+  write(
+    ...[...scores].map(
+      ([label, score]) =>
+        `UPDATE atcoder_tasks SET score = ${score ?? "NULL"}, score_fetched = 1 WHERE contest_id = ${q(contestId)} AND label = ${q(label)};`,
+    ),
+    `UPDATE atcoder_tasks SET score_fetched = 1 WHERE contest_id = ${q(contestId)} AND score_fetched = 0;`,
+  );
 }
 
-async function syncContestFully(contestId: string) {
+async function syncContest(contestId: string) {
   const tasks = await syncTaskList(contestId);
-  for (const t of tasks) await syncScore(contestId, t.taskId);
+  if (tasks.length > 0) await syncScores(contestId);
   log(`${contestId}: 問題 ${tasks.length} 問と配点を取り込みました`);
 }
 
@@ -221,11 +242,11 @@ async function dailySync() {
   const recentPending = query<{ contest_id: string }>(
     `SELECT contest_id FROM atcoder_contests WHERE tasks_status = 0 AND contest_id IN (${recentIds.map(q).join(",")})`,
   );
-  for (const { contest_id } of recentPending) await syncContestFully(contest_id);
-  const recentScores = query<{ task_id: string; contest_id: string }>(
-    `SELECT task_id, contest_id FROM atcoder_tasks WHERE score_fetched = 0 AND contest_id IN (${recentIds.map(q).join(",")})`,
+  for (const { contest_id } of recentPending) await syncContest(contest_id);
+  const recentScores = query<{ contest_id: string }>(
+    `SELECT DISTINCT contest_id FROM atcoder_tasks WHERE score_fetched = 0 AND contest_id IN (${recentIds.map(q).join(",")})`,
   );
-  for (const t of recentScores) await syncScore(t.contest_id, t.task_id);
+  for (const { contest_id } of recentScores) await syncScores(contest_id);
 
   // 2. アーカイブの残りのページ
   const [state] = query<{ value: string }>("SELECT value FROM sync_state WHERE key = 'archive_page_done'");
@@ -239,29 +260,28 @@ async function dailySync() {
   }
   flush();
 
-  // 3. 問題一覧が未取得のコンテスト（--all のときは尽きるまで 200 件ずつ）
+  // 3. 問題一覧と配点が未取得のコンテスト（--all のときは尽きるまで 200 件ずつ）
   for (;;) {
     const contests = query<{ contest_id: string }>(
       `SELECT contest_id FROM atcoder_contests WHERE tasks_status = 0 ORDER BY start_at DESC LIMIT 200`,
     );
     if (contests.length === 0) break;
-    for (const { contest_id } of contests) {
-      const tasks = await syncTaskList(contest_id);
-      log(`${contest_id}: 問題 ${tasks.length} 問`);
-    }
+    for (const { contest_id } of contests) await syncContest(contest_id);
     flush();
   }
 
-  // 4. 配点が未取得の問題
+  // 4. 問題一覧はあるが配点が未取得のコンテスト
   for (;;) {
-    const tasks = query<{ task_id: string; contest_id: string }>(
-      `SELECT t.task_id, t.contest_id FROM atcoder_tasks t JOIN atcoder_contests c ON c.contest_id = t.contest_id
-        WHERE t.score_fetched = 0 ORDER BY c.start_at DESC, t.position LIMIT 200`,
+    const contests = query<{ contest_id: string }>(
+      `SELECT DISTINCT t.contest_id FROM atcoder_tasks t JOIN atcoder_contests c ON c.contest_id = t.contest_id
+        WHERE t.score_fetched = 0 ORDER BY c.start_at DESC LIMIT 200`,
     );
-    if (tasks.length === 0) break;
-    for (const t of tasks) await syncScore(t.contest_id, t.task_id);
+    if (contests.length === 0) break;
+    for (const { contest_id } of contests) {
+      await syncScores(contest_id);
+      log(`${contest_id}: 配点を取り込みました`);
+    }
     flush();
-    log(`配点: ${tasks.length} 問取り込み（${tasks.at(-1)!.contest_id} まで）`);
   }
 }
 
@@ -285,7 +305,7 @@ async function main() {
   }
   try {
     if (requested.length > 0) {
-      for (const id of requested) await syncContestFully(id);
+      for (const id of requested) await syncContest(id);
     } else {
       await dailySync();
     }
