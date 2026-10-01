@@ -118,8 +118,8 @@ export type AtCoderTask = {
   label: string;
   title: string;
   url: string;
-  /** 未取得なら undefined、配点が書かれていない問題なら null */
-  score?: number | null;
+  /** 配点が書かれていない問題（古いコンテストなど）は null */
+  score: number | null;
 };
 
 /** 「ABC400」「abc400」やコンテスト / 問題の URL からコンテスト ID を取り出す */

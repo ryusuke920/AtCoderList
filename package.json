@@ -10,7 +10,8 @@
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc -b",
     "db:migrate:local": "wrangler d1 migrations apply atcoder-list --local",
-    "db:migrate:remote": "wrangler d1 migrations apply atcoder-list --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply atcoder-list --remote",
+    "atcoder:sync": "node --disable-warning=ExperimentalWarning scripts/sync-atcoder.ts"
   },
   "dependencies": {
     "hono": "^4.13.12",

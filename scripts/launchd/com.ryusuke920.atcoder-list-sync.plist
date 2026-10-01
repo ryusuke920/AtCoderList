@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 毎朝 7:00 に AtCoder の問題一覧を取り込む。インストール方法は README を参照 -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ryusuke920.atcoder-list-sync</string>
+  <key>WorkingDirectory</key>
+  <string>/Users/ryusuke920/Documents/atcoder-list</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>--disable-warning=ExperimentalWarning</string>
+    <string>scripts/sync-atcoder.ts</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/ryusuke920/Library/Logs/atcoder-list-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/ryusuke920/Library/Logs/atcoder-list-sync.log</string>
+</dict>
+</plist>

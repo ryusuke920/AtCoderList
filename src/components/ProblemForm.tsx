@@ -20,8 +20,6 @@ type Props = {
 export function ProblemForm({ initial, onSubmit, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
-  // AtCoder から選んだ問題。配点の取得が終わる前に別の問題を選んだら古い結果を捨てるために使う
-  const pickedTaskRef = useRef<string | null>(null);
   const [form, setForm] = useState<ProblemInput>(initial ?? EMPTY);
   const [titleTouched, setTitleTouched] = useState(Boolean(initial));
   const [error, setError] = useState<string | null>(null);
@@ -68,13 +66,9 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
         {!initial && (
           <AtCoderPicker
             ref={firstFieldRef}
-            onPick={({ url, title, taskId }) => {
-              pickedTaskRef.current = taskId;
+            onPick={({ url, title, score }) => {
               setTitleTouched(true);
-              setForm((f) => ({ ...f, url, title, score: null }));
-            }}
-            onScore={(taskId, score) => {
-              if (pickedTaskRef.current === taskId) set("score", score);
+              setForm((f) => ({ ...f, url, title, score }));
             }}
           />
         )}

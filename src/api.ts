@@ -25,9 +25,5 @@ export const api = {
     request<{ problem: Problem }>(`/api/problems/${id}`, { method: "PUT", body: JSON.stringify(input) }).then((r) => r.problem),
   atcoderTasks: (contestId: string) =>
     request<{ contestId: string; tasks: AtCoderTask[] }>(`/api/atcoder/contests/${encodeURIComponent(contestId)}/tasks`),
-  atcoderTask: (contestId: string, taskId: string) =>
-    request<{ task: AtCoderTask }>(
-      `/api/atcoder/contests/${encodeURIComponent(contestId)}/tasks/${encodeURIComponent(taskId)}`,
-    ).then((r) => r.task),
   deleteProblem: (id: number) => request<void>(`/api/problems/${id}`, { method: "DELETE" }),
 };

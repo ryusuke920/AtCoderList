@@ -51,18 +51,37 @@ users ─┬─< sessions
 
 追加フォームでコンテスト（例: `ABC400`）を入れて問題を選ぶと、URL・問題名・配点が入る。
 
-- AtCoder に公式 API はないため、公開ページ（`/contests/<id>/tasks` と各問題ページ）の HTML を Worker で読んでいる。robots.txt で禁止されていないページのみ
-- 短時間に何度もアクセスすると 429 が返るので、取得結果は D1 にキャッシュし、同じページは二度取りにいかない。配点は選んだ問題の分だけ取得する
+- AtCoder に公式 API はないため、公開ページ（コンテストアーカイブ・問題一覧・各問題ページ）の HTML を読んでいる。robots.txt で禁止されていないページのみ
+- **AtCoder は Cloudflare からのアクセスを 403 で拒否する**ため、Worker からは取得しない。手元の Mac で `scripts/sync-atcoder.ts` を実行して本番 D1（`atcoder_contests` / `atcoder_tasks`）に書き込み、Worker はそれを返すだけ
+- Mac の launchd で毎朝 7:00 に自動実行する。アーカイブから未取り込みの ABC/ARC/AGC を新しい順に最大 3 回分取り込む。ページ取得は 3 秒間隔
+- 取り込まれていないコンテストを選ぶと「まだ取り込まれていません」と出るので、手入力するか手動で取り込む
 - 問題文は AtCoder の著作物なので取得・保存しない
-- Difficulty は AtCoder Problems 独自の推定値で AtCoder 公式には存在しないため、自動入力しない（手で選ぶ）
-- AtCoder のページ構造が変わって読めなくなっても、手入力はこれまでどおりできる
+- Difficulty は AtCoder Problems 独自の推定値で AtCoder 公式には存在しないため、自動入力しない
 
-### 旧版からの主な改善点
+```sh
+npm run atcoder:sync              # 未取り込みの最新コンテストを取り込む（launchd が毎朝やっているのと同じ）
+npm run atcoder:sync abc400 arc190  # 指定したコンテストを取り込む（取り込み済みなら上書き）
+```
 
-- 他人の問題を編集・削除できてしまう問題（`WHERE id = ?` のみだった）を修正し、全クエリを `user_id` で絞る
-- 全ユーザーの問題を取得してテンプレート側で絞っていたのを、SQL で絞るように
-- CSRF 対策（Origin チェック + SameSite=Lax Cookie）
-- コンテストと問題を選ぶと URL・問題名・配点を自動入力、タグ複数選択、メモ欄、検索・絞り込み、一覧からワンクリックで状態変更、Difficulty 分布バー、ダークモード、スマホ対応
+### 自動実行（launchd）
+
+```sh
+# インストール
+cp scripts/launchd/com.ryusuke920.atcoder-list-sync.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ryusuke920.atcoder-list-sync.plist
+
+# 今すぐ 1 回実行 / ログ確認
+launchctl kickstart gui/$(id -u)/com.ryusuke920.atcoder-list-sync
+cat ~/Library/Logs/atcoder-list-sync.log
+
+# アンインストール
+launchctl bootout gui/$(id -u)/com.ryusuke920.atcoder-list-sync
+rm ~/Library/LaunchAgents/com.ryusuke920.atcoder-list-sync.plist
+```
+
+- 初回実行時に macOS が「node が"書類"フォルダへのアクセスを求めています」と聞いてくるので許可する
+- Mac がスリープ中だった場合は起きたときに実行される。電源オフだった日はスキップ
+- `wrangler login` の認証を使うので、ログインが切れていると失敗する（ログに出る）
 
 ## ローカル開発
 

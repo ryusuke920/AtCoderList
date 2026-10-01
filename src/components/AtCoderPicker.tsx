@@ -3,15 +3,12 @@ import { parseContestId, type AtCoderTask } from "../../shared/domain";
 import { api } from "../api";
 
 type Props = {
-  /** 問題を選んだ直後に呼ばれる（配点はまだ取得中のことがある） */
-  onPick: (picked: { url: string; title: string; taskId: string }) => void;
-  /** 配点を取得できたら呼ばれる */
-  onScore: (taskId: string, score: number | null) => void;
+  onPick: (picked: { url: string; title: string; score: number | null }) => void;
   ref?: Ref<HTMLInputElement>;
 };
 
-/** コンテスト ID を入れて問題を選ぶと、URL・問題名・配点を AtCoder から取ってくる */
-export function AtCoderPicker({ onPick, onScore, ref }: Props) {
+/** コンテスト ID を入れて問題を選ぶと、取り込み済みの URL・問題名・配点を入力する */
+export function AtCoderPicker({ onPick, ref }: Props) {
   const [contestInput, setContestInput] = useState("");
   const [loaded, setLoaded] = useState<{ contestId: string; tasks: AtCoderTask[] } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -37,23 +34,10 @@ export function AtCoderPicker({ onPick, onScore, ref }: Props) {
     }
   };
 
-  const pick = async (task: AtCoderTask) => {
+  const pick = (task: AtCoderTask) => {
     if (!loaded) return;
     setSelected(task.taskId);
-    setMessage(null);
-    onPick({ url: task.url, title: `${loaded.contestId.toUpperCase()} ${task.label} - ${task.title}`, taskId: task.taskId });
-    if (task.score !== undefined) {
-      onScore(task.taskId, task.score);
-      return;
-    }
-    try {
-      const detail = await api.atcoderTask(loaded.contestId, task.taskId);
-      // 次に選んだときのためにキャッシュしておく
-      setLoaded((l) => l && { ...l, tasks: l.tasks.map((t) => (t.taskId === detail.taskId ? detail : t)) });
-      onScore(detail.taskId, detail.score ?? null);
-    } catch (e) {
-      setMessage(`配点を取得できませんでした: ${(e as Error).message}`);
-    }
+    onPick({ url: task.url, title: `${loaded.contestId.toUpperCase()} ${task.label} - ${task.title}`, score: task.score });
   };
 
   return (
