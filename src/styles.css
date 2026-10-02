@@ -338,7 +338,7 @@ select.input {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 10px 12px;
+  padding: 12px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   color: var(--muted);
@@ -354,9 +354,10 @@ select.input {
   border-top-right-radius: var(--radius);
 }
 .problem-table td {
-  padding: 8px 12px;
+  padding: 12px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  line-height: 1.5;
 }
 .problem-table tbody tr:last-child td {
   border-bottom: none;
@@ -413,15 +414,26 @@ select.input {
   color: var(--accent-strong);
   text-decoration: underline;
 }
-.memo-mark {
-  flex: none;
-  padding: 0 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+.problem-memo {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  width: 100%;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: none;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 18px;
-  cursor: help;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+.problem-memo[aria-expanded="true"] {
+  display: block;
 }
 .col-tags .tag {
   margin: 2px 4px 2px 0;
@@ -503,9 +515,9 @@ select.input {
     grid-template-areas:
       "diff title title actions"
       ". score tags status";
-    gap: 4px 10px;
+    gap: 6px 10px;
     align-items: center;
-    padding: 10px 12px;
+    padding: 14px 12px;
     border-bottom: 1px solid var(--border);
   }
   .problem-table tbody tr:last-child {
@@ -521,6 +533,8 @@ select.input {
   }
   .problem-table td.col-diff {
     grid-area: diff;
+    align-self: start;
+    padding-top: 2px;
   }
   .problem-table td.col-title {
     grid-area: title;

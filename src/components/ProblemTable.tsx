@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DIFFICULTIES, STATUSES, type Problem, type Status } from "../../shared/domain";
 import { DifficultyCircle, StatusBadge } from "./badges";
 
@@ -39,6 +40,14 @@ type Props = {
 };
 
 export function ProblemTable({ problems, sort, onSort, onTag, onStatus, onEdit, onDelete }: Props) {
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggleMemo = (id: number) =>
+    setExpanded((cur) => {
+      const next = new Set(cur);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+
   const header = (key: SortKey, label: string, className?: string) => (
     <th className={className} aria-sort={sort.key === key ? (sort.desc ? "descending" : "ascending") : undefined}>
       <button type="button" className="sort-button" onClick={() => onSort(key)}>
@@ -76,12 +85,18 @@ export function ProblemTable({ problems, sort, onSort, onTag, onStatus, onEdit, 
                 <a className="problem-title" href={p.url} target="_blank" rel="noreferrer" title={p.title}>
                   {p.title}
                 </a>
-                {p.memo && (
-                  <span className="memo-mark" title={p.memo} aria-label={`メモ: ${p.memo}`}>
-                    メモ
-                  </span>
-                )}
               </div>
+              {p.memo && (
+                // 2 行まで表示し、押すと全文を開く
+                <button
+                  type="button"
+                  className="problem-memo"
+                  aria-expanded={expanded.has(p.id)}
+                  onClick={() => toggleMemo(p.id)}
+                >
+                  {p.memo}
+                </button>
+              )}
             </td>
             <td className="col-score">
               {p.score !== null ? (
