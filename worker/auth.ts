@@ -177,14 +177,12 @@ export const authRoutes = new Hono<AppEnv>()
     const code = typeof body?.recoveryCode === "string" ? body.recoveryCode : "";
     const invalid = () => c.json({ error: "ユーザー名または復旧コードが間違っています" }, 401);
 
+    // ログインの失敗でロックされていても復旧はできるようにする（パスワードを忘れた人がロックされて詰まるため）。
+    // 復旧コードは 100 ビットあるので、ロックなしでも総当たりで当てられない
     const db = c.env.DB;
     const row = await selectSecrets(db, "username", cred.username);
-    if (row && row.locked_until > now()) return c.json({ error: LOCKED_MESSAGE }, 429);
     const given = await recoveryHash(code, pepper(c));
-    if (!row || !row.recovery_hash || !timingSafeEqual(given, row.recovery_hash)) {
-      if (row) await recordFailure(db, row.id);
-      return invalid();
-    }
+    if (!row || !row.recovery_hash || !timingSafeEqual(given, row.recovery_hash)) return invalid();
 
     // パスワードを変え、使ったコードは無効にして新しいコードを出す。ほかの端末のセッションも切る
     await db.batch([
