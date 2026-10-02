@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { DIFFICULTIES, STATUSES, type Difficulty, type Problem, type ProblemInput, type Status } from "../../shared/domain";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { DIFFICULTIES, STATUSES, type Difficulty, type Problem, type ProblemInput, type Status, type User } from "../../shared/domain";
 import { api } from "../api";
+import { SyncBar } from "./SyncBar";
 import { ProblemTable, sortProblems, type Sort, type SortKey } from "./ProblemTable";
 
 const SORT_OPTIONS = [
@@ -17,7 +18,13 @@ import { ProblemForm } from "./ProblemForm";
 
 type Editing = { mode: "new" } | { mode: "edit"; problem: Problem } | null;
 
-export function ProblemBoard() {
+type Props = {
+  user: User;
+  onUserChange: (user: User) => void;
+  onOpenSettings: () => void;
+};
+
+export function ProblemBoard({ user, onUserChange, onOpenSettings }: Props) {
   const [problems, setProblems] = useState<Problem[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing>(null);
@@ -28,9 +35,13 @@ export function ProblemBoard() {
   const [tag, setTag] = useState("");
   const [sort, setSort] = useState<Sort>({ key: "updated", desc: true });
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     api.listProblems().then(setProblems, (e: Error) => setLoadError(e.message));
   }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const usedTags = useMemo(() => [...new Set((problems ?? []).flatMap((p) => p.tags))].sort(), [problems]);
 
@@ -93,6 +104,8 @@ export function ProblemBoard() {
           ＋ 問題を追加
         </button>
       </div>
+
+      <SyncBar user={user} onUserChange={onUserChange} onUpdated={reload} onOpenSettings={onOpenSettings} />
 
       {problems.length > 0 && <DifficultyBar problems={problems} />}
 

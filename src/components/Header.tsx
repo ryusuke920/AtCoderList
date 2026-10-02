@@ -1,6 +1,8 @@
 import type { User } from "../../shared/domain";
 
-export function Header({ user, onLogout }: { user: User | null; onLogout: () => void }) {
+type Props = { user: User | null; onLogout: () => void; onOpenSettings: () => void };
+
+export function Header({ user, onLogout, onOpenSettings }: Props) {
   return (
     <header className="header">
       <a href="/" className="logo">
@@ -10,6 +12,9 @@ export function Header({ user, onLogout }: { user: User | null; onLogout: () => 
       {user && (
         <div className="header-user">
           <span className="header-username">{user.username}</span>
+          <button type="button" className="btn btn-ghost" onClick={onOpenSettings}>
+            設定
+          </button>
           <button type="button" className="btn btn-ghost" onClick={onLogout}>
             ログアウト
           </button>

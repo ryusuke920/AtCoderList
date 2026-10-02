@@ -35,6 +35,13 @@ async function startSession(c: Context<AppEnv>, userId: number) {
   });
 }
 
+const USER_COLUMNS = `u.id, u.username, u.atcoder_id AS atcoderId,
+  u.submissions_cursor AS submissionsCursor, u.submissions_synced_at AS submissionsSyncedAt`;
+
+export async function selectUser(db: D1Database, id: number): Promise<User | null> {
+  return db.prepare(`SELECT ${USER_COLUMNS} FROM users u WHERE u.id = ?`).bind(id).first<User>();
+}
+
 function pepper(c: Context<AppEnv>): string {
   const value = c.env.PASSWORD_PEPPER;
   if (!value) throw new Error("PASSWORD_PEPPER が設定されていません");
@@ -47,7 +54,7 @@ export const loadUser: MiddlewareHandler<AppEnv> = async (c, next) => {
   const token = getCookie(c, SESSION_COOKIE);
   if (token) {
     const user = await c.env.DB.prepare(
-      `SELECT u.id, u.username
+      `SELECT ${USER_COLUMNS}
          FROM sessions s JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = ? AND s.expires_at > unixepoch()`,
     )
@@ -69,15 +76,15 @@ export const authRoutes = new Hono<AppEnv>()
     if (!cred.ok) return c.json({ error: cred.error }, 400);
 
     const hash = await hashPassword(cred.password, pepper(c));
-    const user = await c.env.DB.prepare(
-      "INSERT INTO users (username, password_hash) VALUES (?, ?) ON CONFLICT (username) DO NOTHING RETURNING id, username",
+    const created = await c.env.DB.prepare(
+      "INSERT INTO users (username, password_hash) VALUES (?, ?) ON CONFLICT (username) DO NOTHING RETURNING id",
     )
       .bind(cred.username, hash)
-      .first<User>();
-    if (!user) return c.json({ error: "このユーザー名は既に使われています" }, 409);
+      .first<{ id: number }>();
+    if (!created) return c.json({ error: "このユーザー名は既に使われています" }, 409);
 
-    await startSession(c, user.id);
-    return c.json({ user }, 201);
+    await startSession(c, created.id);
+    return c.json({ user: await selectUser(c.env.DB, created.id) }, 201);
   })
   .post("/login", async (c) => {
     const cred = validateCredentials(await c.req.json().catch(() => null));
@@ -113,7 +120,7 @@ export const authRoutes = new Hono<AppEnv>()
 
     await db.prepare("UPDATE users SET failed_logins = 0, locked_until = 0 WHERE id = ?").bind(row.id).run();
     await startSession(c, row.id);
-    return c.json({ user: { id: row.id, username: row.username } });
+    return c.json({ user: await selectUser(db, row.id) });
   })
   .post("/logout", async (c) => {
     const token = getCookie(c, SESSION_COOKIE);

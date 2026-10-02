@@ -321,6 +321,45 @@ select.input {
   padding: 48px 0;
 }
 
+/* 提出の同期 ================================ */
+
+.sync-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.sync-bar strong {
+  color: var(--text);
+}
+.sync-button {
+  margin-left: auto;
+}
+.sync-message {
+  color: var(--accent-strong);
+}
+.sync-error {
+  color: var(--danger);
+}
+
+.dialog-narrow {
+  width: min(480px, calc(100vw - 32px));
+}
+.settings-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.settings-note ul {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
+}
+.settings-note li + li {
+  margin-top: 4px;
+}
+
 /* 問題一覧（表） ================================ */
 
 .problem-table {
@@ -824,6 +863,13 @@ select.input {
 }
 
 /* スマホ ================================ */
+
+@media (max-width: 420px) {
+  /* 「設定」「ログアウト」が並ぶと狭いので、ユーザー名は隠す */
+  .header-username {
+    display: none;
+  }
+}
 
 @media (max-width: 600px) {
   .header {

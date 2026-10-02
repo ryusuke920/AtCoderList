@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { csrf } from "hono/csrf";
 import { HTTPException } from "hono/http-exception";
-import { validateProblemInput, type Problem } from "../shared/domain";
+import { taskIdFromUrl, validateProblemInput, type Problem } from "../shared/domain";
 import { atcoderRoutes } from "./atcoder";
+import { applyTaskResults, submissionRoutes } from "./submissions";
 import { authRoutes, loadUser, purgeExpiredSessions, requireUser } from "./auth";
 import type { AppEnv, Bindings } from "./types";
 
@@ -50,10 +51,15 @@ const api = new Hono<AppEnv>()
     try {
       const [inserted] = await db.batch<{ id: number }>([
         db
-          .prepare("INSERT INTO problems (user_id, title, url, difficulty, status, memo, score) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id")
-          .bind(userId, p.title, p.url, p.difficulty, p.status, p.memo, p.score),
+          .prepare(
+            "INSERT INTO problems (user_id, title, url, task_id, difficulty, status, memo, score) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+          )
+          .bind(userId, p.title, p.url, taskIdFromUrl(p.url), p.difficulty, p.status, p.memo, p.score),
         ...replaceTagStatements(db, { where: "user_id = ? AND url = ?", params: [userId, p.url] }, p.tags),
       ]);
+      // 提出結果が同期済みなら、追加した時点で状態に反映する
+      const taskId = taskIdFromUrl(p.url);
+      if (taskId) await applyTaskResults(db, userId, [taskId]);
       const created = await db.prepare(`${SELECT_PROBLEMS} WHERE p.id = ?`).bind(inserted.results[0].id).first<ProblemRow>();
       return c.json({ problem: toProblem(created!) }, 201);
     } catch (e) {
@@ -73,10 +79,10 @@ const api = new Hono<AppEnv>()
       const [updated] = await db.batch([
         db
           .prepare(
-            `UPDATE problems SET title = ?, url = ?, difficulty = ?, status = ?, memo = ?, score = ?, updated_at = datetime('now')
+            `UPDATE problems SET title = ?, url = ?, task_id = ?, difficulty = ?, status = ?, memo = ?, score = ?, updated_at = datetime('now')
               WHERE id = ? AND user_id = ?`,
           )
-          .bind(p.title, p.url, p.difficulty, p.status, p.memo, p.score, id, userId),
+          .bind(p.title, p.url, taskIdFromUrl(p.url), p.difficulty, p.status, p.memo, p.score, id, userId),
         ...replaceTagStatements(db, { where: "id = ? AND user_id = ?", params: [id, userId] }, p.tags),
       ]);
       if (updated.meta.changes === 0) return c.json({ error: "問題が見つかりません" }, 404);
@@ -100,6 +106,7 @@ const app = new Hono<AppEnv>()
   .use(loadUser)
   .route("/auth", authRoutes)
   .route("/api/atcoder", atcoderRoutes)
+  .route("/api/sync", submissionRoutes)
   .route("/api", api);
 
 app.onError((err, c) => {

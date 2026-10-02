@@ -1,4 +1,4 @@
-import type { AtCoderContest, AtCoderTask, Problem, ProblemInput, User } from "../shared/domain";
+import type { AtCoderContest, AtCoderTask, Problem, ProblemInput, TaskResult, User } from "../shared/domain";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -26,5 +26,12 @@ export const api = {
   atcoderContests: () => request<{ contests: AtCoderContest[] }>("/api/atcoder/contests").then((r) => r.contests),
   atcoderTasks: (contestId: string) =>
     request<{ contestId: string; tasks: AtCoderTask[] }>(`/api/atcoder/contests/${encodeURIComponent(contestId)}/tasks`),
+  setAtcoderId: (atcoderId: string | null) =>
+    request<{ user: User }>("/api/sync/atcoder-id", { method: "PUT", body: JSON.stringify({ atcoderId }) }).then((r) => r.user),
+  postTaskResults: (atcoderId: string, cursor: number, results: TaskResult[]) =>
+    request<{ updated: number; user: User }>("/api/sync/results", {
+      method: "POST",
+      body: JSON.stringify({ atcoderId, cursor, results }),
+    }),
   deleteProblem: (id: number) => request<void>(`/api/problems/${id}`, { method: "DELETE" }),
 };

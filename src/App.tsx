@@ -4,10 +4,12 @@ import { api } from "./api";
 import { Header } from "./components/Header";
 import { Landing } from "./components/Landing";
 import { ProblemBoard } from "./components/ProblemBoard";
+import { SettingsDialog } from "./components/SettingsDialog";
 
 export function App() {
   // undefined: 読み込み中, null: 未ログイン
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     api.me().then(setUser, () => setUser(null));
@@ -22,8 +24,16 @@ export function App() {
 
   return (
     <>
-      <Header user={user} onLogout={logout} />
-      <main>{user ? <ProblemBoard /> : <Landing onAuthenticated={setUser} />}</main>
+      <Header user={user} onLogout={logout} onOpenSettings={() => setSettingsOpen(true)} />
+      <main>
+        {user ? (
+          // AtCoder ID が変わったら一覧（と自動同期）を作り直す
+          <ProblemBoard key={user.atcoderId ?? ""} user={user} onUserChange={setUser} onOpenSettings={() => setSettingsOpen(true)} />
+        ) : (
+          <Landing onAuthenticated={setUser} />
+        )}
+      </main>
+      {user && settingsOpen && <SettingsDialog user={user} onSaved={setUser} onClose={() => setSettingsOpen(false)} />}
     </>
   );
 }

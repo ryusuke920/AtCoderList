@@ -89,6 +89,16 @@ rm ~/Library/LaunchAgents/com.ryusuke920.atcoder-list-sync.plist
 - Mac がスリープ中だった場合は起きたときに実行される。電源オフだった日はスキップ
 - `wrangler login` の認証を使うので、ログインが切れていると失敗する（ログに出る）
 
+## 提出結果からの状態の自動更新
+
+「設定」で AtCoder ID を登録すると、登録した問題の状態を提出結果から更新する。
+
+- 提出データは非公式の [AtCoder Problems の API](https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md)（`/atcoder-api/v3/user/submissions`）から取得する。AtCoder 公式の提出ページは robots.txt で禁止されているため読まない
+- API は CORS を許可しているので**ブラウザから直接**読み、問題ごとの集計（AC したか・最後の結果）だけを Worker に送る（`src/submissionSync.ts` → `POST /api/sync/results`）
+- API の注意書きに従い、アクセス間隔は 1 秒以上（タブをまたいでも localStorage で守る）。前回の続き（`users.submissions_cursor`）から読み、1 回の同期は 20 ページ（1 万件）まで。ジャッジ中の提出があればそこから読み直す
+- 一度でも AC していれば AC、なければ最後の提出の結果。反映するのは新しい提出があった問題と、新しく追加した問題だけなので、手で変えた状態は次に提出するまで残る
+- 問題一覧を開いたとき（10 分に 1 回まで）と「同期」ボタンで実行
+
 ## ローカル開発
 
 ```sh

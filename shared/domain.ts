@@ -144,7 +144,36 @@ export type Problem = {
 
 export type ProblemInput = Pick<Problem, "title" | "url" | "difficulty" | "status" | "memo" | "score" | "tags">;
 
-export type User = { id: number; username: string };
+export type User = {
+  id: number;
+  username: string;
+  atcoderId: string | null;
+  /** AtCoder Problems の提出 API を次に読む from_second */
+  submissionsCursor: number;
+  submissionsSyncedAt: string | null;
+};
+
+/** AtCoder のユーザー名（英数字と _ の 3〜16 文字） */
+export const ATCODER_ID_PATTERN = /^[A-Za-z0-9_]{3,16}$/;
+
+/** 1 問ぶんの提出結果のまとめ。ブラウザで集計してサーバーに送る */
+export type TaskResult = {
+  taskId: string;
+  ac: boolean;
+  /** 最後の提出の結果（状態として扱えるもののみ） */
+  lastResult: Status | null;
+  lastEpoch: number;
+};
+
+/** 提出結果のうち、状態として反映するもの（WJ や IE などは無視する） */
+export const SYNCABLE_RESULTS: readonly Status[] = ["AC", "WA", "TLE", "MLE", "RE", "CE"];
+
+export const MAX_TASK_RESULTS_PER_REQUEST = 5000;
+
+/** 問題 URL から AtCoder の問題 ID（例: abc400_a）を取り出す */
+export function taskIdFromUrl(url: string): string | null {
+  return url.match(/atcoder\.jp\/contests\/[^/]+\/tasks\/([^/?#]+)/)?.[1] ?? null;
+}
 
 export const USERNAME_RULE = { pattern: /^[A-Za-z0-9_\-]{3,20}$/, message: "ユーザー名は 3〜20 文字の半角英数字と「_」「-」で入力してください" };
 export const PASSWORD_RULE = { min: 8, max: 128 };
