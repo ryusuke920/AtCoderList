@@ -147,16 +147,25 @@ export function parsePrintScores(html: string): Map<string, number | null> {
 const run = (args: string[]) =>
   execFileSync(WRANGLER, args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
 
+// wrangler login のトークンは 1 時間ほどで切れ、d1 execute は自動で更新してくれない（code 10000 / 7403 になる）。
+// whoami を実行すると更新されるので、20 分おきに先回りして更新し、それでも認証エラーなら更新して 1 回やり直す
+const TOKEN_REFRESH_INTERVAL_MS = 20 * 60 * 1000;
+let tokenRefreshedAt = 0;
+function refreshToken() {
+  run(["whoami"]);
+  tokenRefreshedAt = Date.now();
+}
+const isAuthError = (e: unknown) => /code: (10000|7403)\b/.test(String((e as { stderr?: string }).stderr));
+
 function wrangler(args: string[]): string {
   const command = ["d1", "execute", DB_NAME, "--remote", ...args];
+  if (Date.now() - tokenRefreshedAt > TOKEN_REFRESH_INTERVAL_MS) refreshToken();
   try {
     return run(command);
   } catch (e) {
-    // ログインのトークンが切れていると認証エラー（code 10000）になることがある。
-    // whoami でトークンを更新してから 1 回だけやり直す
-    if (!String((e as { stderr?: string }).stderr).includes("code: 10000")) throw e;
+    if (!isAuthError(e)) throw e;
     log("Cloudflare の認証エラー。トークンを更新して再試行します");
-    run(["whoami"]);
+    refreshToken();
     return run(command);
   }
 }
@@ -205,7 +214,7 @@ async function syncTaskList(contestId: string): Promise<Task[]> {
       (t, i) =>
         `INSERT INTO atcoder_tasks (task_id, contest_id, position, label, title) ` +
         `VALUES (${q(t.taskId)}, ${q(contestId)}, ${i}, ${q(t.label)}, ${q(t.title)}) ` +
-        `ON CONFLICT (task_id) DO UPDATE SET position = excluded.position, label = excluded.label, title = excluded.title;`,
+        `ON CONFLICT (contest_id, task_id) DO UPDATE SET position = excluded.position, label = excluded.label, title = excluded.title;`,
     ),
     `UPDATE atcoder_contests SET tasks_status = ${tasks.length > 0 ? 1 : -1}, fetched_at = datetime('now') WHERE contest_id = ${q(contestId)};`,
   );
