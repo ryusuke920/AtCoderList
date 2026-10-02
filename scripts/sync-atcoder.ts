@@ -21,8 +21,8 @@
 // 問題文は AtCoder の著作物なので取得・保存しない。
 
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
@@ -144,13 +144,21 @@ export function parsePrintScores(html: string): Map<string, number | null> {
 
 // ---- D1 ----
 
+const run = (args: string[]) =>
+  execFileSync(WRANGLER, args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
+
 function wrangler(args: string[]): string {
-  return execFileSync(WRANGLER, ["d1", "execute", DB_NAME, "--remote", ...args], {
-    cwd: ROOT,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  const command = ["d1", "execute", DB_NAME, "--remote", ...args];
+  try {
+    return run(command);
+  } catch (e) {
+    // ログインのトークンが切れていると認証エラー（code 10000）になることがある。
+    // whoami でトークンを更新してから 1 回だけやり直す
+    if (!String((e as { stderr?: string }).stderr).includes("code: 10000")) throw e;
+    log("Cloudflare の認証エラー。トークンを更新して再試行します");
+    run(["whoami"]);
+    return run(command);
+  }
 }
 
 function query<T>(sql: string): T[] {
@@ -166,17 +174,11 @@ function write(...statements: string[]) {
   pending.push(...statements);
   if (pending.length >= 200) flush();
 }
+// --file（D1 の import API）はトークン切れのまま失敗したことがあるので、読み取りと同じ --command で書き込む
 function flush() {
   if (pending.length === 0) return;
-  const dir = mkdtempSync(join(tmpdir(), "atcoder-sync-"));
-  try {
-    const file = join(dir, "sync.sql");
-    writeFileSync(file, pending.join("\n"));
-    wrangler(["--file", file, "--yes"]);
-    pending.length = 0;
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  wrangler(["--command", pending.join("\n"), "--yes"]);
+  pending.length = 0;
 }
 
 const upsertContest = (c: Contest) =>
