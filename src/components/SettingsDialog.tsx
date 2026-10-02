@@ -119,21 +119,28 @@ function RecoverySection({ user, onSaved }: { user: User; onSaved: (user: User) 
           ? "発行済みです。なくしたときは再発行してください（前のコードは使えなくなります）。"
           : "まだ発行していません。パスワードを忘れたときのために発行しておきましょう。"}
       </p>
-      <div className="inline-form">
-        <input
-          className="input"
-          type="password"
-          required
-          placeholder="今のパスワード"
-          aria-label="今のパスワード"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit" className="btn btn-ghost" disabled={busy}>
-          {user.hasRecoveryCode ? "再発行" : "発行"}
+      {user.hasRecoveryCode ? (
+        <div className="inline-form">
+          <input
+            className="input"
+            type="password"
+            required
+            placeholder="このアプリのログインパスワード"
+            aria-label="このアプリのログインパスワード"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button type="submit" className="btn btn-ghost" disabled={busy}>
+            再発行
+          </button>
+        </div>
+      ) : (
+        // 未発行なら、ログイン中であればパスワードなしで最初の 1 回を発行できる
+        <button type="submit" className="btn btn-primary" disabled={busy}>
+          復旧コードを発行する
         </button>
-      </div>
+      )}
       {error && <p className="form-error">{error}</p>}
       {code && <RecoveryCodeDialog code={code} onDone={() => setCode(null)} />}
     </form>
@@ -168,8 +175,8 @@ function DeleteSection({ onDeleted }: { onDeleted: () => void }) {
           className="input"
           type="password"
           required
-          placeholder="今のパスワード"
-          aria-label="今のパスワード（削除の確認）"
+          placeholder="このアプリのログインパスワード"
+          aria-label="このアプリのログインパスワード（削除の確認）"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

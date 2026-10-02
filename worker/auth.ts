@@ -223,10 +223,14 @@ async function confirmPassword(c: Context<AppEnv>): Promise<Response | null> {
 
 export const accountRoutes = new Hono<AppEnv>()
   .use("*", requireUser)
-  // 復旧コードの再発行（古いコードは無効になる）
+  // 復旧コードの発行・再発行（古いコードは無効になる）。
+  // 復旧コードの機能ができる前に登録したアカウントはパスワードを忘れていても発行できるよう、
+  // まだ一度も発行していなければ、ログイン中であることだけで最初の 1 回を発行する
   .post("/recovery-code", async (c) => {
-    const denied = await confirmPassword(c);
-    if (denied) return denied;
+    if (c.var.user!.hasRecoveryCode) {
+      const denied = await confirmPassword(c);
+      if (denied) return denied;
+    }
     const recoveryCode = await issueRecoveryCode(c, c.var.user!.id);
     return c.json({ user: await selectUser(c.env.DB, c.var.user!.id), recoveryCode });
   })
