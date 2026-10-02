@@ -60,11 +60,15 @@ export function ProblemBoard({ user, onUserChange, onOpenSettings }: Props) {
   const upsertLocal = (p: Problem) =>
     setProblems((list) => [p, ...(list ?? []).filter((x) => x.id !== p.id)]);
 
+  // 追加したら、その問題の最新の提出を取りにいく（SyncBar が同期する）
+  const [syncRequest, setSyncRequest] = useState(0);
+
   const save = async (input: ProblemInput) => {
-    const saved =
-      editing?.mode === "edit" ? await api.updateProblem(editing.problem.id, input) : await api.createProblem(input);
+    const isNew = editing?.mode !== "edit";
+    const saved = isNew ? await api.createProblem(input) : await api.updateProblem(editing.problem.id, input);
     upsertLocal(saved);
     setEditing(null);
+    if (isNew) setSyncRequest((n) => n + 1);
   };
 
   const remove = async (p: Problem) => {
@@ -72,14 +76,6 @@ export function ProblemBoard({ user, onUserChange, onOpenSettings }: Props) {
     try {
       await api.deleteProblem(p.id);
       setProblems((list) => (list ?? []).filter((x) => x.id !== p.id));
-    } catch (e) {
-      alert((e as Error).message);
-    }
-  };
-
-  const quickStatus = async (p: Problem, next: Status) => {
-    try {
-      upsertLocal(await api.updateProblem(p.id, { ...p, status: next }));
     } catch (e) {
       alert((e as Error).message);
     }
@@ -105,7 +101,13 @@ export function ProblemBoard({ user, onUserChange, onOpenSettings }: Props) {
         </button>
       </div>
 
-      <SyncBar user={user} onUserChange={onUserChange} onUpdated={reload} onOpenSettings={onOpenSettings} />
+      <SyncBar
+        user={user}
+        syncRequest={syncRequest}
+        onUserChange={onUserChange}
+        onUpdated={reload}
+        onOpenSettings={onOpenSettings}
+      />
 
       {problems.length > 0 && <DifficultyBar problems={problems} />}
 
@@ -169,7 +171,6 @@ export function ProblemBoard({ user, onUserChange, onOpenSettings }: Props) {
           sort={sort}
           onSort={(key) => setSort((cur) => (cur.key === key ? { key, desc: !cur.desc } : { key, desc: key !== "title" }))}
           onTag={setTag}
-          onStatus={quickStatus}
           onEdit={(p) => setEditing({ mode: "edit", problem: p })}
           onDelete={remove}
         />

@@ -19,10 +19,7 @@ async function batchAll(db: D1Database, statements: D1PreparedStatement[]) {
   for (let i = 0; i < statements.length; i += D1_BATCH_SIZE) await db.batch(statements.slice(i, i + D1_BATCH_SIZE));
 }
 
-/**
- * 指定した問題 ID について、提出結果から状態を反映する。AC したことがあれば AC、なければ最後の結果。
- * 手で変えた状態を毎回上書きしないよう、今回結果が変わった問題（と新しく追加した問題）だけを対象にする
- */
+/** 指定した問題 ID について、提出結果から状態を反映する（問題を追加・URL を変更したとき用）。AC したことがあれば AC、なければ最後の結果 */
 export async function applyTaskResults(db: D1Database, userId: number, taskIds: string[]): Promise<number> {
   let changed = 0;
   for (let i = 0; i < taskIds.length; i += IN_CHUNK) {
@@ -43,6 +40,24 @@ export async function applyTaskResults(db: D1Database, userId: number, taskIds: 
     changed += meta.changes;
   }
   return changed;
+}
+
+/**
+ * ユーザーの全問題の状態を、同期した提出結果から決め直す（状態は手で変えられないので常に提出結果が正）。
+ * 提出のない問題は未提出に戻す
+ */
+export async function applyAllTaskResults(db: D1Database, userId: number): Promise<number> {
+  const computed = `COALESCE((SELECT CASE WHEN r.has_ac = 1 THEN 'AC' ELSE r.last_result END
+                                FROM user_task_results r
+                               WHERE r.user_id = problems.user_id AND r.task_id = problems.task_id), 'todo')`;
+  const { meta } = await db
+    .prepare(
+      `UPDATE problems SET status = ${computed}, updated_at = datetime('now')
+        WHERE user_id = ? AND status <> ${computed}`,
+    )
+    .bind(userId)
+    .run();
+  return meta.changes;
 }
 
 function parseResults(raw: unknown): TaskResult[] | null {
@@ -110,10 +125,6 @@ export const submissionRoutes = new Hono<AppEnv>()
         .prepare("UPDATE users SET submissions_cursor = max(submissions_cursor, ?), submissions_synced_at = datetime('now') WHERE id = ?")
         .bind(cursor, user.id),
     ]);
-    const updated = await applyTaskResults(
-      db,
-      user.id,
-      results.map((r) => r.taskId),
-    );
+    const updated = await applyAllTaskResults(db, user.id);
     return c.json({ updated, user: await selectUser(db, user.id) });
   });

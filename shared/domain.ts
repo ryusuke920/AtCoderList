@@ -151,6 +151,8 @@ export type User = {
   /** AtCoder Problems の提出 API を次に読む from_second */
   submissionsCursor: number;
   submissionsSyncedAt: string | null;
+  /** 復旧コードを発行済みか */
+  hasRecoveryCode: boolean;
 };
 
 /** AtCoder のユーザー名（英数字と _ の 3〜16 文字） */

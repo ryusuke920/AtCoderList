@@ -372,6 +372,90 @@ select.input {
   margin-top: 4px;
 }
 
+/* 設定・復旧コード ================================ */
+
+.settings-section {
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+.settings-section:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+.settings-section h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.settings-danger h3 {
+  color: var(--danger);
+}
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+.inline-form .input {
+  flex: 1;
+  min-width: 0;
+}
+.recovery-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+.recovery-code code {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  overflow-wrap: anywhere;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dialog-body .dialog-actions {
+  margin-top: 16px;
+}
+.link-button {
+  display: block;
+  margin: 12px auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-button:hover {
+  color: var(--text);
+}
+.auth-recover-head {
+  padding-top: 16px;
+}
+.auth-recover-head h2 {
+  font-size: 17px;
+}
+.auth-note {
+  margin-top: 12px;
+}
+.status-hint {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
 /* 問題一覧（表） ================================ */
 
 .problem-table {
@@ -651,31 +735,6 @@ select.input {
   font-size: 13px;
   text-align: center;
 }
-.status-picker {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.status-picker:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.status-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  /* 開いたときの選択肢の色（ラベルの白文字を継がないように） */
-  color: var(--text);
-  background: var(--surface);
-  /* iOS で選択時に拡大されないよう 16px にする（透明なので見た目には影響しない） */
-  font-size: 16px;
-}
-
 /* dialog / form ================================ */
 
 .dialog {
@@ -690,8 +749,12 @@ select.input {
 .dialog::backdrop {
   background: rgb(10 20 30 / 0.45);
 }
-.dialog form {
+.dialog form,
+.dialog .dialog-body {
   padding: 20px 24px 0;
+}
+.dialog .dialog-body form {
+  padding: 0;
 }
 .dialog-head {
   display: flex;
@@ -890,7 +953,8 @@ select.input {
   .logo {
     font-size: 18px;
   }
-  .dialog form {
+  .dialog form,
+  .dialog .dialog-body {
     padding: 16px 16px 0;
   }
   .dialog-actions .btn {
@@ -912,4 +976,9 @@ select.input {
   .status {
     min-height: 34px;
   }
+}
+
+ul.settings-note {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
 }

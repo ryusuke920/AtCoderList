@@ -6,6 +6,8 @@ const AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 
 type Props = {
   user: User;
+  /** 値が増えるたびに同期する（問題を追加したとき） */
+  syncRequest: number;
   onUserChange: (user: User) => void;
   /** 状態が更新されたら一覧を読み直す */
   onUpdated: () => void;
@@ -20,7 +22,7 @@ const formatTime = (user: User) =>
     : "まだ";
 
 /** AtCoder の提出結果から状態を同期するバー。一覧を開いたときにも（10 分に 1 回まで）自動で同期する */
-export function SyncBar({ user, onUserChange, onUpdated, onOpenSettings }: Props) {
+export function SyncBar({ user, syncRequest, onUserChange, onUpdated, onOpenSettings }: Props) {
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const autoTried = useRef<string | null>(null);
@@ -50,10 +52,18 @@ export function SyncBar({ user, onUserChange, onUpdated, onOpenSettings }: Props
     if (Date.now() - syncedAtMs(user) > AUTO_SYNC_INTERVAL_MS) sync();
   }, [user, sync]);
 
+  // 問題を追加したら、時間に関係なくすぐ同期する（API の間隔は submissionSync 側で守る）
+  const lastRequest = useRef(syncRequest);
+  useEffect(() => {
+    if (syncRequest === lastRequest.current) return;
+    lastRequest.current = syncRequest;
+    if (user.atcoderId) sync();
+  }, [syncRequest, user.atcoderId, sync]);
+
   if (!user.atcoderId) {
     return (
       <div className="sync-bar">
-        <span className="muted">AtCoder ID を設定すると、提出結果から状態を自動で更新できます</span>
+        <span className="muted">AtCoder ID を設定すると、提出結果から状態（AC / WA など）が自動で入ります</span>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onOpenSettings}>
           設定する
         </button>

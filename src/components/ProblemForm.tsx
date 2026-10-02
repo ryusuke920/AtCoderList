@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { AtCoderPicker } from "./AtCoderPicker";
 import {
   DIFFICULTIES,
-  STATUSES,
   filterTags,
   guessTitleFromUrl,
   type Problem,
@@ -138,23 +137,9 @@ export function ProblemForm({ initial, onSubmit, onClose }: Props) {
           </div>
         </fieldset>
 
-        <fieldset className="field">
-          <legend className="field-label">状態</legend>
-          <div className="chips">
-            {STATUSES.map((s) => (
-              <button
-                type="button"
-                key={s.value}
-                className="chip"
-                aria-pressed={form.status === s.value}
-                style={{ "--chip-color": s.color } as React.CSSProperties}
-                onClick={() => set("status", s.value)}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <p className="field-hint status-hint">
+          状態（AC / WA / 未提出 など）は、設定した AtCoder ID の提出結果から自動で入ります。
+        </p>
 
         <fieldset className="field">
           <legend className="field-label">

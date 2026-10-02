@@ -44,7 +44,15 @@ export function App() {
         </a>{" "}
         を利用しています。
       </footer>
-      {user && settingsOpen && <SettingsDialog user={user} onSaved={setUser} onClose={() => setSettingsOpen(false)} />}
+      {user && settingsOpen && <SettingsDialog
+          user={user}
+          onSaved={setUser}
+          onDeleted={() => {
+            setSettingsOpen(false);
+            setUser(null);
+          }}
+          onClose={() => setSettingsOpen(false)}
+        />}
     </>
   );
 }

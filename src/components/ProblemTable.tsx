@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DIFFICULTIES, STATUSES, type Problem, type Status } from "../../shared/domain";
+import { DIFFICULTIES, STATUSES, type Problem } from "../../shared/domain";
 import { DifficultyCircle, StatusBadge } from "./badges";
 
 export type SortKey = "updated" | "title" | "score" | "difficulty" | "status";
@@ -34,12 +34,11 @@ type Props = {
   sort: Sort;
   onSort: (key: SortKey) => void;
   onTag: (tag: string) => void;
-  onStatus: (p: Problem, s: Status) => void;
   onEdit: (p: Problem) => void;
   onDelete: (p: Problem) => void;
 };
 
-export function ProblemTable({ problems, sort, onSort, onTag, onStatus, onEdit, onDelete }: Props) {
+export function ProblemTable({ problems, sort, onSort, onTag, onEdit, onDelete }: Props) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const toggleMemo = (id: number) =>
     setExpanded((cur) => {
@@ -116,7 +115,7 @@ export function ProblemTable({ problems, sort, onSort, onTag, onStatus, onEdit, 
               ))}
             </td>
             <td className="col-status">
-              <StatusBadge status={p.status} onChange={(s) => onStatus(p, s)} />
+              <StatusBadge status={p.status} />
             </td>
             <td className="col-updated">{formatDate(p.updatedAt)}</td>
             <td className="col-actions">

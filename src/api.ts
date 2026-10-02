@@ -13,8 +13,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   me: () => request<{ user: User | null }>("/api/me").then((r) => r.user),
+  /** 登録すると復旧コードが一度だけ返ってくる */
   signup: (username: string, password: string) =>
-    request<{ user: User }>("/auth/signup", { method: "POST", body: JSON.stringify({ username, password }) }).then((r) => r.user),
+    request<{ user: User; recoveryCode: string }>("/auth/signup", { method: "POST", body: JSON.stringify({ username, password }) }),
+  /** 復旧コードでパスワードを再設定する。使ったコードは無効になり、新しいコードが返ってくる */
+  recover: (username: string, recoveryCode: string, newPassword: string) =>
+    request<{ user: User; recoveryCode: string }>("/auth/recover", {
+      method: "POST",
+      body: JSON.stringify({ username, recoveryCode, newPassword }),
+    }),
+  reissueRecoveryCode: (password: string) =>
+    request<{ user: User; recoveryCode: string }>("/api/account/recovery-code", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
+  deleteAccount: (password: string) => request<void>("/api/account", { method: "DELETE", body: JSON.stringify({ password }) }),
   login: (username: string, password: string) =>
     request<{ user: User }>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }).then((r) => r.user),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
