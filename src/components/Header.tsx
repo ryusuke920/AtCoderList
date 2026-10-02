@@ -6,7 +6,7 @@ export function Header({ user, onLogout, onOpenSettings }: Props) {
   return (
     <header className="header">
       <a href="/" className="logo">
-        <img src="/favicon.ico" alt="" width={28} height={28} />
+        <img src="/logo.png" alt="" width={28} height={28} />
         AtCoder List
       </a>
       {user && (

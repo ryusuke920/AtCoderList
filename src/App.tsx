@@ -33,6 +33,17 @@ export function App() {
           <Landing onAuthenticated={setUser} />
         )}
       </main>
+      <footer className="footer">
+        AtCoder List は個人が運営する非公式ツールで、AtCoder 株式会社とは関係ありません。問題の情報は{" "}
+        <a href="https://atcoder.jp" target="_blank" rel="noreferrer">
+          AtCoder
+        </a>
+        、提出データは{" "}
+        <a href="https://github.com/kenkoooo/AtCoderProblems" target="_blank" rel="noreferrer">
+          AtCoder Problems
+        </a>{" "}
+        を利用しています。
+      </footer>
       {user && settingsOpen && <SettingsDialog user={user} onSaved={setUser} onClose={() => setSettingsOpen(false)} />}
     </>
   );

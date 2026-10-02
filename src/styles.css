@@ -188,11 +188,13 @@ select.input {
 .landing {
   display: flex;
   align-items: center;
-  gap: 32px;
+  justify-content: center;
+  gap: clamp(32px, 8vw, 112px);
   padding-top: 48px;
 }
+/* 文章とアイコンをひとかたまりにして中央に置く（文章が広がるとアイコンが右端に寄るため） */
 .landing-text {
-  flex: 1 1 360px;
+  flex: 0 1 520px;
 }
 .landing-sub {
   color: var(--accent-strong);
@@ -319,6 +321,16 @@ select.input {
   text-align: center;
   color: var(--muted);
   padding: 48px 0;
+}
+
+.footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
 }
 
 /* 提出の同期 ================================ */
