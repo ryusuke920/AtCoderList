@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { DIFFICULTIES, STATUSES, type Difficulty, type Problem, type ProblemInput, type Status } from "../../shared/domain";
 import { api } from "../api";
-import { DifficultyCircle, StatusBadge } from "./badges";
+import { ProblemTable, sortProblems, type Sort, type SortKey } from "./ProblemTable";
+
+const SORT_OPTIONS = [
+  { value: "updated:desc", label: "更新日が新しい順" },
+  { value: "updated:asc", label: "更新日が古い順" },
+  { value: "difficulty:desc", label: "Diff が高い順" },
+  { value: "difficulty:asc", label: "Diff が低い順" },
+  { value: "score:desc", label: "配点が高い順" },
+  { value: "score:asc", label: "配点が低い順" },
+  { value: "title:asc", label: "問題名順" },
+  { value: "status:asc", label: "状態順" },
+];
 import { ProblemForm } from "./ProblemForm";
 
 type Editing = { mode: "new" } | { mode: "edit"; problem: Problem } | null;
@@ -15,6 +26,7 @@ export function ProblemBoard() {
   const [status, setStatus] = useState<Status | "">("");
   const [difficulty, setDifficulty] = useState<Difficulty | "">("");
   const [tag, setTag] = useState("");
+  const [sort, setSort] = useState<Sort>({ key: "updated", desc: true });
 
   useEffect(() => {
     api.listProblems().then(setProblems, (e: Error) => setLoadError(e.message));
@@ -24,14 +36,15 @@ export function ProblemBoard() {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (problems ?? []).filter(
+    const filtered = (problems ?? []).filter(
       (p) =>
         (!q || p.title.toLowerCase().includes(q) || p.memo.toLowerCase().includes(q)) &&
         (!status || p.status === status) &&
         (!difficulty || p.difficulty === difficulty) &&
         (!tag || p.tags.includes(tag)),
     );
-  }, [problems, query, status, difficulty, tag]);
+    return sortProblems(filtered, sort);
+  }, [problems, query, status, difficulty, tag, sort]);
 
   const upsertLocal = (p: Problem) =>
     setProblems((list) => [p, ...(list ?? []).filter((x) => x.id !== p.id)]);
@@ -115,6 +128,22 @@ export function ProblemBoard() {
             </option>
           ))}
         </select>
+        {/* スマホでは表の見出しが出ないので、並び替えはここで選ぶ */}
+        <select
+          className="input sort-select"
+          aria-label="並び替え"
+          value={`${sort.key}:${sort.desc ? "desc" : "asc"}`}
+          onChange={(e) => {
+            const [key, dir] = e.target.value.split(":");
+            setSort({ key: key as SortKey, desc: dir === "desc" });
+          }}
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {visible.length === 0 ? (
@@ -122,38 +151,15 @@ export function ProblemBoard() {
           {filtered ? "条件に合う問題がありません" : "まだ問題がありません。「＋ 問題を追加」から登録してみましょう！"}
         </p>
       ) : (
-        <ul className="problem-list">
-          {visible.map((p) => (
-            <li key={p.id} className="problem-card">
-              <div className="problem-main">
-                <DifficultyCircle difficulty={p.difficulty} />
-                <a className="problem-title" href={p.url} target="_blank" rel="noreferrer">
-                  {p.title}
-                </a>
-                {p.score !== null && <span className="score">{p.score}点</span>}
-              </div>
-              {p.tags.length > 0 && (
-                <div className="tags">
-                  {p.tags.map((t) => (
-                    <button type="button" key={t} className="tag" onClick={() => setTag(t)}>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {p.memo && <p className="problem-memo">{p.memo}</p>}
-              <div className="problem-actions">
-                <StatusBadge status={p.status} onChange={(s) => quickStatus(p, s)} />
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditing({ mode: "edit", problem: p })}>
-                  編集
-                </button>
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(p)}>
-                  削除
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <ProblemTable
+          problems={visible}
+          sort={sort}
+          onSort={(key) => setSort((cur) => (cur.key === key ? { key, desc: !cur.desc } : { key, desc: key !== "title" }))}
+          onTag={setTag}
+          onStatus={quickStatus}
+          onEdit={(p) => setEditing({ mode: "edit", problem: p })}
+          onDelete={remove}
+        />
       )}
 
       {editing && (

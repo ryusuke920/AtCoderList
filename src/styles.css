@@ -55,7 +55,7 @@ a {
 }
 
 main {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px 16px 64px;
 }
@@ -310,8 +310,7 @@ select.input {
   .filters {
     grid-template-columns: 1fr 1fr;
   }
-  .filters input[type="search"],
-  .filters select:last-child {
+  .filters input[type="search"] {
     grid-column: 1 / -1;
   }
 }
@@ -322,84 +321,247 @@ select.input {
   padding: 48px 0;
 }
 
-.problem-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 10px;
-}
-.problem-card {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px 16px;
-  align-items: center;
-  padding: 14px 16px;
+/* 問題一覧（表） ================================ */
+
+.problem-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  font-size: 14px;
 }
-.problem-main {
+.problem-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+.problem-table thead tr:first-child th:first-child {
+  border-top-left-radius: var(--radius);
+}
+.problem-table thead tr:first-child th:last-child {
+  border-top-right-radius: var(--radius);
+}
+.problem-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.problem-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.problem-table tbody tr:hover td {
+  background: var(--bg);
+}
+.col-diff {
+  width: 48px;
+  text-align: center;
+}
+.problem-table th.col-diff {
+  text-align: center;
+}
+.col-score {
+  width: 72px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.problem-table th.col-score {
+  text-align: right;
+}
+.col-tags {
+  width: 28%;
+}
+.col-status {
+  width: 96px;
+}
+.col-updated {
+  width: 88px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.col-actions {
+  width: 84px;
+  text-align: right;
+  white-space: nowrap;
+}
+.title-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 .problem-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 700;
   text-decoration: none;
-  overflow-wrap: anywhere;
 }
 .problem-title:hover {
   color: var(--accent-strong);
   text-decoration: underline;
 }
-.problem-actions {
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.problem-memo {
-  grid-column: 1;
+.memo-mark {
+  flex: none;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
   color: var(--muted);
-  font-size: 13px;
-  white-space: pre-wrap;
+  font-size: 11px;
+  line-height: 18px;
+  cursor: help;
 }
-@media (max-width: 600px) {
-  .problem-card {
-    grid-template-columns: 1fr;
-  }
-  .problem-actions {
-    grid-column: 1;
-    grid-row: auto;
-    justify-content: flex-end;
+.col-tags .tag {
+  margin: 2px 4px 2px 0;
+}
+.score-unit {
+  display: none;
+}
+.muted {
+  color: var(--muted);
+}
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.sort-button:hover {
+  color: var(--text);
+}
+.sort-mark {
+  font-size: 9px;
+  color: var(--accent-strong);
+}
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.icon-button:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.icon-danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.sort-select {
+  display: none;
+}
+@media (max-width: 720px) {
+  .sort-select {
+    display: block;
   }
 }
 
-.score {
-  flex: none;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+/* スマホでは 1 問 2 行のリストにする（1 行目: 問題名と操作 / 2 行目: 配点・タグ・状態） */
+@media (max-width: 720px) {
+  .problem-table,
+  .problem-table tbody {
+    display: block;
+  }
+  .problem-table thead {
+    display: none;
+  }
+  .problem-table tr {
+    display: grid;
+    grid-template-columns: 16px auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "diff title title actions"
+      ". score tags status";
+    gap: 4px 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .problem-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .problem-table td {
+    width: auto;
+    padding: 0;
+    border: none;
+  }
+  .problem-table tbody tr:hover td {
+    background: none;
+  }
+  .problem-table td.col-diff {
+    grid-area: diff;
+  }
+  .problem-table td.col-title {
+    grid-area: title;
+    min-width: 0;
+  }
+  .problem-table td.col-actions {
+    grid-area: actions;
+  }
+  .problem-table td.col-score {
+    grid-area: score;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .problem-table td.col-tags {
+    grid-area: tags;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .problem-table td.col-status {
+    grid-area: status;
+  }
+  .problem-table td.col-updated {
+    display: none;
+  }
+  .score-unit {
+    display: inline;
+  }
 }
 
 .diff-circle {
   flex: none;
+  display: inline-block;
+  vertical-align: middle;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 2px solid;
 }
 
-.tags {
-  grid-column: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 .tag {
   padding: 0 10px;
   border: none;
