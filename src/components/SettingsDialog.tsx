@@ -54,8 +54,9 @@ function AtCoderIdSection({ user, onSaved }: { user: User; onSaved: (user: User)
   };
 
   return (
-    <form className="settings-section" onSubmit={submit}>
+    <form className="settings-card" onSubmit={submit}>
       <h3>AtCoder ID</h3>
+      <p className="settings-lead">登録すると、問題の状態（AC / WA / 未提出 など）が提出結果から自動で入ります。</p>
       <div className="inline-form">
         <input
           className="input"
@@ -73,7 +74,6 @@ function AtCoderIdSection({ user, onSaved }: { user: User; onSaved: (user: User)
       </div>
       {message && <p className={message.error ? "form-error" : "sync-message"}>{message.text}</p>}
       <ul className="settings-note">
-        <li>問題の状態（AC / WA / 未提出 など）は、この ID の提出結果から自動で決まります</li>
         <li>一度でも AC していれば「AC」、まだなら最後の提出の結果になります</li>
         <li>問題を追加したとき、問題一覧を開いたとき（10 分に 1 回まで）、「同期」を押したときに更新します</li>
         <li>
@@ -112,13 +112,19 @@ function RecoverySection({ user, onSaved }: { user: User; onSaved: (user: User) 
   };
 
   return (
-    <form className="settings-section" onSubmit={submit}>
-      <h3>復旧コード</h3>
-      <p className="settings-note">
-        {user.hasRecoveryCode
-          ? "発行済みです。なくしたときは再発行してください（前のコードは使えなくなります）。"
-          : "まだ発行していません。パスワードを忘れたときのために発行しておきましょう。"}
-      </p>
+    <form className="settings-card" onSubmit={submit}>
+      <h3>
+        復旧コード
+        <span className={user.hasRecoveryCode ? "pill pill-ok" : "pill pill-warn"}>{user.hasRecoveryCode ? "発行済み" : "未発行"}</span>
+      </h3>
+      <p className="settings-lead">パスワードを忘れたときに、新しいパスワードを設定するための合言葉です。</p>
+      <ul className="settings-note">
+        <li>
+          使うとき: ログイン画面の「パスワードを忘れた」で、ユーザー名・このコード・新しいパスワードを入力します
+        </li>
+        <li>コードは発行したときに一度だけ表示されます。パスワード管理アプリやメモに保存してください</li>
+        <li>なくしたら再発行できます（前のコードは使えなくなります）。再発行にはログインパスワードが必要です</li>
+      </ul>
       {user.hasRecoveryCode ? (
         <div className="inline-form">
           <input
@@ -167,9 +173,13 @@ function DeleteSection({ onDeleted }: { onDeleted: () => void }) {
   };
 
   return (
-    <form className="settings-section settings-danger" onSubmit={submit}>
+    <form className="settings-card settings-danger" onSubmit={submit}>
       <h3>アカウントの削除</h3>
-      <p className="settings-note">アカウントと、登録した問題・タグ・メモ・同期した提出結果をすべて削除します。元に戻せません。</p>
+      <p className="settings-lead">アカウントと、登録した問題・タグ・メモ・同期した提出結果をすべて削除します。</p>
+      <ul className="settings-note">
+        <li>削除すると元に戻せません。同じユーザー名で登録し直すことはできます</li>
+        <li>確認のため、このアプリのログインパスワードを入力してください</li>
+      </ul>
       <div className="inline-form">
         <input
           className="input"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "../shared/domain";
 import { api } from "./api";
+import { Guide } from "./components/Guide";
 import { Header } from "./components/Header";
 import { Landing } from "./components/Landing";
 import { ProblemBoard } from "./components/ProblemBoard";
@@ -26,7 +27,10 @@ export function App() {
     <>
       <Header user={user} onLogout={logout} onOpenSettings={() => setSettingsOpen(true)} />
       <main>
-        {user ? (
+        {/* 使い方ページはログインしていなくても見られる */}
+        {location.pathname === "/guide" ? (
+          <Guide />
+        ) : user ? (
           // AtCoder ID が変わったら一覧（と自動同期）を作り直す
           <ProblemBoard key={user.atcoderId ?? ""} user={user} onUserChange={setUser} onOpenSettings={() => setSettingsOpen(true)} />
         ) : (

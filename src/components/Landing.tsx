@@ -17,6 +17,9 @@ export function Landing({ onAuthenticated }: { onAuthenticated: (user: User) => 
           Difficulty・状態・アルゴリズムで整理して、あとから一瞬で開けます。
         </p>
         <AuthForm onAuthenticated={onAuthenticated} />
+        <p className="landing-guide">
+          はじめての方は <a href="/guide">使い方</a> をご覧ください
+        </p>
       </div>
       <img className="landing-image" src="/top.png" alt="" />
     </section>

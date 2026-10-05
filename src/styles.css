@@ -333,6 +333,151 @@ select.input {
   text-align: center;
 }
 
+/* 使い方 ================================ */
+
+.guide {
+  max-width: 820px;
+  margin: 0 auto;
+  line-height: 1.85;
+}
+.guide-head h1 {
+  font-size: clamp(26px, 5vw, 34px);
+  margin: 4px 0 12px;
+}
+.guide-lead {
+  color: var(--muted);
+}
+.guide-toc {
+  margin-top: 24px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.guide-toc ol {
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: none;
+  columns: 2;
+  column-gap: 32px;
+}
+.guide-toc li {
+  break-inside: avoid;
+}
+.guide-toc a {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+.guide-toc a:hover {
+  text-decoration: underline;
+}
+.guide-section {
+  margin-top: 56px;
+  scroll-margin-top: 24px;
+}
+.guide-section h2 {
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--accent-soft);
+  font-size: 22px;
+}
+.guide-section h3 {
+  margin: 32px 0 8px;
+  font-size: 17px;
+}
+.guide-section p,
+.guide-section ul {
+  margin: 0 0 12px;
+}
+.guide-section ul {
+  padding-left: 1.2em;
+}
+.guide-section li + li {
+  margin-top: 6px;
+}
+.guide-section code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  font-size: 0.92em;
+}
+.guide-note {
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+}
+.guide-shot {
+  margin: 16px 0 24px;
+}
+.guide-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.guide-shot-narrow img {
+  max-width: 360px;
+  margin: 0 auto;
+}
+.guide-shot figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+.guide-dl {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  gap: 10px 16px;
+  margin: 0;
+}
+.guide-dl dt {
+  font-weight: 700;
+}
+.guide-dl dd {
+  margin: 0;
+}
+.guide-faq {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.guide-faq dt {
+  margin-top: 14px;
+}
+.guide-faq dt::before {
+  content: "Q. ";
+  color: var(--accent-strong);
+}
+.guide-back {
+  margin: 56px 0 0;
+  text-align: center;
+}
+.landing-guide {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.landing-guide a {
+  color: var(--accent-strong);
+}
+@media (max-width: 600px) {
+  .guide-toc ol {
+    columns: 1;
+  }
+  .guide-dl {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .guide-dl dd {
+    margin-bottom: 10px;
+  }
+}
+
 /* 提出の同期 ================================ */
 
 .sync-bar {
@@ -374,25 +519,52 @@ select.input {
 
 /* 設定・復旧コード ================================ */
 
-.settings-section {
-  padding: 16px 0;
-  border-top: 1px solid var(--border);
+.settings-card {
+  margin-top: 16px;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
 }
-.settings-section:first-of-type {
-  border-top: none;
-  padding-top: 4px;
+.settings-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 16px;
 }
-.settings-section h3 {
-  margin: 0 0 8px;
-  font-size: 15px;
+.settings-card > .btn {
+  margin-top: 14px;
+}
+.settings-lead {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.settings-danger {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger) 5%, var(--surface));
 }
 .settings-danger h3 {
   color: var(--danger);
 }
+.pill {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.pill-ok {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.pill-warn {
+  background: color-mix(in srgb, #f0ad4e 20%, transparent);
+  color: #b26b00;
+}
 .inline-form {
   display: flex;
   gap: 8px;
-  margin: 8px 0;
+  margin: 12px 0 0;
 }
 .inline-form .input {
   flex: 1;
@@ -753,7 +925,7 @@ select.input {
 .dialog .dialog-body {
   padding: 20px 24px 0;
 }
-.dialog .dialog-body form {
+.dialog .dialog-body form:not(.settings-card) {
   padding: 0;
 }
 .dialog-head {
@@ -940,8 +1112,19 @@ select.input {
 /* スマホ ================================ */
 
 @media (max-width: 420px) {
-  /* 「設定」「ログアウト」が並ぶと狭いので、ユーザー名は隠す */
+  /* 「使い方」「設定」「ログアウト」が並ぶと狭いので、ユーザー名は隠してボタンを詰める */
   .header-username {
+    display: none;
+  }
+  .header-user {
+    gap: 4px;
+  }
+  .header-user .btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  /* ボタンが入りきらないので、ロゴは画像だけにする */
+  .logo-text {
     display: none;
   }
 }
@@ -979,6 +1162,7 @@ select.input {
 }
 
 ul.settings-note {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   padding-left: 1.2em;
+  line-height: 1.7;
 }
