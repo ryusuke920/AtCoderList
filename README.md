@@ -38,8 +38,6 @@
 
 競プロerは問題を溜め込む方が多くいるという話を聞き、自分用の貯蔵庫みたいなものを作れれば良いなと思い作成しました。
 
-2021 年に Heroku で公開していましたが、Heroku の無料プランの終了とともに止まっていたため、2026 年に作り直しました（旧版のコードは [legacy ブランチ](https://github.com/ryusuke920/AtCoderList/tree/legacy) に残しています）。
-
 ## 技術スタック
 
 | 内容 | 技術スタック |
@@ -57,23 +55,3 @@
 提出結果からの状態の自動更新には、[kenkoooo](https://github.com/kenkoooo) さんが公開している [AtCoder Problems](https://github.com/kenkoooo/AtCoderProblems) の [API](https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md) を利用させていただいています。ありがとうございます。
 
 問題の情報は [AtCoder](https://atcoder.jp) のものです。AtCoder List は個人が運営する非公式ツールで、AtCoder 株式会社とは関係ありません。
-
-## 開発体制
-
-開発者: [ryusuke920](https://twitter.com/ryusuke__h)
-
-### 旧版（2021）
-
-制作期間: 2021/08/31 - 2021/09/26
-
-アイコン作成: [Harry1206](https://github.com/Harrry1206)
-
-CTF: [MtSaka](https://twitter.com/mt_saka), [おばけです](https://twitter.com/OBAKE_DESUYONE)
-
-デバッグ協力者: [mink_](https://twitter.com/mink1618033), [itacha](https://twitter.com/itachakqr), [Nyamau39](https://twitter.com/mijinco2480), [みゅれ.i.am](https://twitter.com/not_mymyuray)
-
-色々助けてくれた方: [mag](https://twitter.com/magurofIy)
-
-## その他
-
-何か疑問点・不具合等がありましたら、[ryusuke920](https://twitter.com/ryusuke__h) の DM、もしくは issue にてお願いいたします。

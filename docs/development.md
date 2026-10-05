@@ -3,7 +3,6 @@
 AtCoder List の構成・設計・運用の詳細です。利用者向けの説明は [README](../README.md) と [使い方ページ](https://atcoder-list.ryusuke920.workers.dev/guide) を見てください。
 
 AtCoder の「解きたい問題」「復習したい問題」をストックしておける問題管理ツール。
-2021 年に Heroku + MySQL + EJS で作った [旧版](https://github.com/ryusuke920/AtCoderList) を、無料で動かし続けられる構成で作り直したもの。
 
 ## 構成
 
@@ -39,10 +38,10 @@ users ─┬─< sessions
        └─< problems ─< problem_tags
 ```
 
-- `users`: ユーザー名は大文字小文字を区別せず一意（`COLLATE NOCASE`）。メールアドレスは旧版でも使っていなかったので持たない。
+- `users`: ユーザー名は大文字小文字を区別せず一意（`COLLATE NOCASE`）。メールアドレスは持たない（パスワードの復旧は復旧コードで行う）。
 - `sessions`: Cookie にはランダムトークン、DB にはその SHA-256 のみ保存（DB が漏れてもセッションを乗っ取れない）。期限 30 日、毎日 Cron で掃除。
-- `problems`: difficulty / status は**色ではなく列挙値**で保存（旧版は `rgb(...)` 文字列を保存していた）。`UNIQUE(user_id, url)` で同じ問題の二重登録を防止。
-- `problem_tags`: 旧版の「1 問 1 ジャンル」を多対多に。
+- `problems`: difficulty / status は**色ではなく列挙値**で保存。`UNIQUE(user_id, url)` で同じ問題の二重登録を防止。
+- `problem_tags`: 問題とタグの多対多。
 
 - `problems.score`: 配点。AtCoder から自動取得するか手入力（古いコンテストなど配点がない問題は NULL）。
 - `atcoder_contests` / `atcoder_tasks`: AtCoder から取得した問題一覧・配点のキャッシュ。
